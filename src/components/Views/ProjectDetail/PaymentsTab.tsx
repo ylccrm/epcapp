@@ -33,36 +33,52 @@ export function PaymentsTab({ projectId }: PaymentsTabProps) {
 
   async function loadContracts() {
     try {
-      const { data: contractsData, error: contractsError } = await supabase
-        .from('contracts')
-        .select('*')
-        .eq('project_id', projectId)
-        .order('created_at', { ascending: false });
+      setLoading(true);
 
-      if (contractsError) throw contractsError;
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout')), 10000)
+      );
 
-      if (contractsData) {
-        const contractsWithMilestones = await Promise.all(
-          contractsData.map(async (contract) => {
-            const { data: milestones, error: milestonesError } = await supabase
-              .from('contract_payment_milestones')
-              .select('*')
-              .eq('contract_id', contract.id)
-              .order('order_index', { ascending: true });
+      const fetchPromise = (async () => {
+        const { data: contractsData, error: contractsError } = await supabase
+          .from('contracts')
+          .select('*')
+          .eq('project_id', projectId)
+          .order('created_at', { ascending: false });
 
-            if (milestonesError) throw milestonesError;
+        if (contractsError) throw contractsError;
 
-            return {
-              ...contract,
-              milestones: milestones || [],
-            };
-          })
-        );
+        if (contractsData && contractsData.length > 0) {
+          const contractsWithMilestones = await Promise.all(
+            contractsData.map(async (contract) => {
+              const { data: milestones, error: milestonesError } = await supabase
+                .from('contract_payment_milestones')
+                .select('*')
+                .eq('contract_id', contract.id)
+                .order('order_index', { ascending: true });
 
-        setContracts(contractsWithMilestones);
-      }
-    } catch (error) {
+              if (milestonesError) throw milestonesError;
+
+              return {
+                ...contract,
+                milestones: milestones || [],
+              };
+            })
+          );
+
+          setContracts(contractsWithMilestones);
+        } else {
+          setContracts([]);
+        }
+      })();
+
+      await Promise.race([fetchPromise, timeoutPromise]);
+    } catch (error: any) {
       console.error('Error loading contracts:', error);
+      if (error.message === 'Timeout') {
+        alert('La carga de contratos está tardando demasiado. Por favor, intenta de nuevo.');
+      }
+      setContracts([]);
     } finally {
       setLoading(false);
     }

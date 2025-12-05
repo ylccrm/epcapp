@@ -1,12 +1,14 @@
-import { Bell, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useCurrency } from '../../contexts/CurrencyContext';
+import { NotificationDropdown } from '../Notifications/NotificationDropdown';
 
 interface HeaderProps {
   title: string;
   onNewProject?: () => void;
+  onNavigate?: (view: string, projectId?: string) => void;
 }
 
-export function Header({ title, onNewProject }: HeaderProps) {
+export function Header({ title, onNewProject, onNavigate }: HeaderProps) {
   const { currency, setCurrency } = useCurrency();
 
   return (
@@ -37,10 +39,7 @@ export function Header({ title, onNewProject }: HeaderProps) {
           </button>
         </div>
 
-        <div className="relative">
-          <Bell className="text-gray-400 hover:text-gray-600 cursor-pointer" size={20} />
-          <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full"></span>
-        </div>
+        <NotificationDropdown onNavigate={onNavigate} />
 
         <div className="h-8 w-px bg-gray-200 mx-2"></div>
 

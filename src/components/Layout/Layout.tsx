@@ -16,7 +16,7 @@ export function Layout({ children, currentView, onNavigate, headerTitle, onNewPr
       <Sidebar currentView={currentView} onNavigate={onNavigate} />
 
       <main className="flex-1 flex flex-col bg-gray-50 overflow-hidden relative">
-        <Header title={headerTitle} onNewProject={onNewProject} />
+        <Header title={headerTitle} onNewProject={onNewProject} onNavigate={onNavigate} />
 
         <div className="flex-1 overflow-y-auto p-8 relative">
           {children}

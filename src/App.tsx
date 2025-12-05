@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { CurrencyProvider } from './contexts/CurrencyContext';
+import { ToastProvider } from './contexts/ToastContext';
 import { Layout } from './components/Layout/Layout';
 import { Dashboard } from './components/Views/Dashboard';
 import { Projects } from './components/Views/Projects';
 import { Inventory } from './components/Views/Inventory';
+import { Suppliers } from './components/Views/Suppliers';
 import { ProjectDetail } from './components/Views/ProjectDetail/ProjectDetail';
 import { CreateProjectModal } from './components/Modals/CreateProjectModal';
 
-type ViewType = 'dashboard' | 'projects' | 'inventory' | 'project-detail';
+type ViewType = 'dashboard' | 'projects' | 'inventory' | 'providers' | 'project-detail';
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
@@ -35,6 +37,8 @@ function App() {
         return 'Cartera de Proyectos';
       case 'inventory':
         return 'Almacén Central';
+      case 'providers':
+        return 'Gestión de Proveedores';
       case 'project-detail':
         return 'Gestión de Proyecto';
       default:
@@ -44,12 +48,13 @@ function App() {
 
   return (
     <CurrencyProvider>
-      <Layout
-        currentView={currentView}
-        onNavigate={handleNavigate}
-        headerTitle={getHeaderTitle()}
-        onNewProject={() => setIsModalOpen(true)}
-      >
+      <ToastProvider>
+        <Layout
+          currentView={currentView}
+          onNavigate={handleNavigate}
+          headerTitle={getHeaderTitle()}
+          onNewProject={() => setIsModalOpen(true)}
+        >
         {currentView === 'dashboard' && (
           <Dashboard onNavigate={handleNavigate} key={`dashboard-${refreshTrigger}`} />
         )}
@@ -57,16 +62,18 @@ function App() {
           <Projects onNavigate={handleNavigate} key={`projects-${refreshTrigger}`} />
         )}
         {currentView === 'inventory' && <Inventory />}
+        {currentView === 'providers' && <Suppliers />}
         {currentView === 'project-detail' && selectedProjectId && (
           <ProjectDetail projectId={selectedProjectId} onNavigate={handleNavigate} />
         )}
       </Layout>
 
-      <CreateProjectModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={handleProjectCreated}
-      />
+        <CreateProjectModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={handleProjectCreated}
+        />
+      </ToastProvider>
     </CurrencyProvider>
   );
 }
