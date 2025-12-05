@@ -176,9 +176,20 @@ export function AddContractModal({ isOpen, onClose, projectId, onSuccess }: AddC
 
       onSuccess();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating contract:', error);
-      alert('Error al crear el contrato. Por favor intente de nuevo.');
+
+      let errorMessage = 'Error al crear el contrato. Por favor intente de nuevo.';
+
+      if (error.message?.includes('storage')) {
+        errorMessage = 'Error al subir el archivo. Verifica que el archivo sea válido y no exceda 50MB.';
+      } else if (error.message?.includes('network')) {
+        errorMessage = 'Error de conexión. Verifica tu internet e intenta de nuevo.';
+      } else if (error.message) {
+        errorMessage = `Error: ${error.message}`;
+      }
+
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }
