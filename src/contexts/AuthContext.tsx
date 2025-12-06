@@ -6,7 +6,7 @@ interface UserProfile {
   id: string;
   email: string;
   full_name: string;
-  role: 'admin' | 'installer' | 'supervisor';
+  role: 'admin' | 'regular' | 'installer' | 'supervisor';
   phone: string | null;
   assigned_crew_id: string | null;
   is_active: boolean;

@@ -120,7 +120,9 @@ export function Sidebar({ currentView, onNavigate, isOpen = true, onClose }: Sid
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">{user?.email?.split('@')[0]}</p>
               <p className="text-[11px] text-slate-400 font-medium">
-                {userProfile?.role === 'admin' ? 'Administrador' : userProfile?.role === 'supervisor' ? 'Supervisor' : 'Instalador'}
+                {userProfile?.role === 'admin' ? 'Administrador' :
+                 userProfile?.role === 'regular' ? 'Usuario Normal' :
+                 userProfile?.role === 'supervisor' ? 'Supervisor' : 'Instalador'}
               </p>
             </div>
           </div>
