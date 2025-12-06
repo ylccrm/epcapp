@@ -23,16 +23,6 @@ export function ViewContractModal({ isOpen, onClose, contract, milestones }: Vie
     return url.split('.').pop()?.toLowerCase() || '';
   };
 
-  const isImageFile = (url: string) => {
-    const ext = getFileExtension(url);
-    return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
-  };
-
-  const isPdfFile = (url: string) => {
-    const ext = getFileExtension(url);
-    return ext === 'pdf';
-  };
-
   const handleDownload = () => {
     if (contract.contract_pdf_url) {
       window.open(contract.contract_pdf_url, '_blank');
@@ -66,56 +56,25 @@ export function ViewContractModal({ isOpen, onClose, contract, milestones }: Vie
         <div className="flex-1 overflow-y-auto p-6">
           {contract.contract_pdf_url ? (
             <div className="space-y-4">
-              <div className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-200">
-                <div className="flex items-center gap-2">
-                  <FileText size={18} className="text-blue-600" />
-                  <span className="text-sm font-medium text-gray-700">
-                    Documento del Contrato
-                  </span>
+              <div className="flex justify-between items-center bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div className="flex items-center gap-3">
+                  <FileText size={24} className="text-blue-600" />
+                  <div>
+                    <span className="text-sm font-semibold text-gray-800 block">
+                      Documento del Contrato
+                    </span>
+                    <span className="text-xs text-gray-600">
+                      Tipo: {getFileExtension(contract.contract_pdf_url).toUpperCase()}
+                    </span>
+                  </div>
                 </div>
                 <button
                   onClick={handleDownload}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition"
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition shadow-md"
                 >
-                  <Download size={16} />
+                  <Download size={18} />
                   Descargar
                 </button>
-              </div>
-
-              <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
-                {isPdfFile(contract.contract_pdf_url) && (
-                  <iframe
-                    src={contract.contract_pdf_url}
-                    className="w-full h-[600px]"
-                    title="Contrato PDF"
-                  />
-                )}
-
-                {isImageFile(contract.contract_pdf_url) && (
-                  <div className="p-4 flex justify-center">
-                    <img
-                      src={contract.contract_pdf_url}
-                      alt="Contrato"
-                      className="max-w-full h-auto rounded shadow-lg"
-                    />
-                  </div>
-                )}
-
-                {!isPdfFile(contract.contract_pdf_url) && !isImageFile(contract.contract_pdf_url) && (
-                  <div className="p-8 text-center">
-                    <FileText size={48} className="mx-auto text-gray-400 mb-3" />
-                    <p className="text-sm text-gray-600 mb-4">
-                      Este tipo de archivo no se puede visualizar en el navegador.
-                    </p>
-                    <button
-                      onClick={handleDownload}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition"
-                    >
-                      <Download size={16} />
-                      Descargar Archivo
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           ) : (
