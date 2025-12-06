@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test: Subir Contrato con Archivo</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      border-bottom: 2px solid #4CAF50;
+      padding-bottom: 10px;
+    }
+    .form-group {
+      margin: 20px 0;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #555;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .log {
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 15px;
+      margin-top: 20px;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+    .log-entry {
+      margin: 5px 0;
+      padding: 5px;
+      border-left: 3px solid #4CAF50;
+      padding-left: 10px;
+    }
+    .log-error {
+      border-left-color: #f44336;
+      color: #f44336;
+    }
+    .log-success {
+      border-left-color: #4CAF50;
+      color: #4CAF50;
+      font-weight: bold;
+    }
+    .log-info {
+      border-left-color: #2196F3;
+      color: #2196F3;
+    }
+    .file-info {
+      background: #e8f5e9;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 Test: Crear Subcontrato con Archivo</h1>
+
+    <div class="form-group">
+      <label>Email:</label>
+      <input type="email" id="email" placeholder="tu-email@ejemplo.com" />
+    </div>
+
+    <div class="form-group">
+      <label>Contraseña:</label>
+      <input type="password" id="password" placeholder="tu contraseña" />
+    </div>
+
+    <button onclick="login()">1. Iniciar Sesión</button>
+
+    <hr style="margin: 30px 0;">
+
+    <div class="form-group">
+      <label>Proyecto ID:</label>
+      <input type="text" id="projectId" value="da6f3dd8-f9de-4756-b3e4-a50f8fccf577" />
+    </div>
+
+    <div class="form-group">
+      <label>Subcontratista:</label>
+      <select id="subcontractor">
+        <option>Montajes Eléctricos del Norte</option>
+        <option>Seguridad Alturas Ltda</option>
+        <option>Ingeniería & Diseños S.A.S</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Tipo de Servicio:</label>
+      <select id="serviceType">
+        <option>Instalación Eléctrica</option>
+        <option>Obra Civil</option>
+        <option>HSE / Seguridad</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Valor Total (USD):</label>
+      <input type="number" id="totalValue" value="50000" />
+    </div>
+
+    <div class="form-group">
+      <label>Archivo del Contrato (PDF, DOC, IMG):</label>
+      <input type="file" id="contractFile" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
+      <div id="fileInfo" class="file-info" style="display: none;"></div>
+    </div>
+
+    <button onclick="createContract()" id="createBtn" disabled>2. Crear Contrato (con archivo)</button>
+    <button onclick="createContractWithoutFile()" id="createNoFileBtn" disabled>3. Crear Contrato (sin archivo)</button>
+
+    <div class="log" id="log">
+      <div class="log-entry">Esperando inicio de sesión...</div>
+    </div>
+  </div>
+
+  <script>
+    let supabase;
+    let currentSession = null;
+
+    // Cargar configuración desde .env
+    fetch('/.env')
+      .then(r => r.text())
+      .then(text => {
+        const lines = text.split('\n');
+        const config = {};
+        lines.forEach(line => {
+          const [key, ...valueParts] = line.split('=');
+          if (key && valueParts.length) {
+            config[key.trim()] = valueParts.join('=').trim();
+          }
+        });
+
+        const supabaseUrl = config.VITE_SUPABASE_URL;
+        const supabaseKey = config.VITE_SUPABASE_ANON_KEY;
+
+        if (!supabaseUrl || !supabaseKey) {
+          addLog('ERROR: No se encontraron las credenciales de Supabase en .env', 'error');
+          return;
+        }
+
+        supabase = supabase_js.createClient(supabaseUrl, supabaseKey);
+        addLog('✓ Cliente de Supabase inicializado correctamente', 'success');
+        addLog(`URL: ${supabaseUrl}`, 'info');
+      })
+      .catch(err => {
+        addLog(`ERROR al cargar .env: ${err.message}`, 'error');
+      });
+
+    // Escuchar cambios en el archivo
+    document.getElementById('contractFile').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const info = document.getElementById('fileInfo');
+        info.style.display = 'block';
+        info.innerHTML = `
+          <strong>Archivo seleccionado:</strong><br>
+          Nombre: ${file.name}<br>
+          Tipo: ${file.type}<br>
+          Tamaño: ${(file.size / 1024 / 1024).toFixed(2)} MB
+        `;
+        addLog(`Archivo seleccionado: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`, 'info');
+      }
+    });
+
+    function addLog(message, type = 'info') {
+      const log = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = `log-entry log-${type}`;
+      const timestamp = new Date().toLocaleTimeString();
+      entry.textContent = `[${timestamp}] ${message}`;
+      log.appendChild(entry);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    async function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      if (!email || !password) {
+        addLog('ERROR: Ingresa email y contraseña', 'error');
+        return;
+      }
+
+      addLog('Iniciando sesión...', 'info');
+
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+
+        if (error) throw error;
+
+        currentSession = data.session;
+        addLog('✓ Sesión iniciada exitosamente', 'success');
+        addLog(`Usuario: ${data.user.email}`, 'info');
+        addLog(`Session ID: ${data.session.access_token.substring(0, 20)}...`, 'info');
+
+        document.getElementById('createBtn').disabled = false;
+        document.getElementById('createNoFileBtn').disabled = false;
+      } catch (error) {
+        addLog(`ERROR al iniciar sesión: ${error.message}`, 'error');
+      }
+    }
+
+    async function createContract() {
+      await createContractInternal(true);
+    }
+
+    async function createContractWithoutFile() {
+      await createContractInternal(false);
+    }
+
+    async function createContractInternal(withFile) {
+      if (!currentSession) {
+        addLog('ERROR: Debes iniciar sesión primero', 'error');
+        return;
+      }
+
+      const projectId = document.getElementById('projectId').value;
+      const subcontractor = document.getElementById('subcontractor').value;
+      const serviceType = document.getElementById('serviceType').value;
+      const totalValue = parseFloat(document.getElementById('totalValue').value);
+      const contractFile = withFile ? document.getElementById('contractFile').files[0] : null;
+
+      if (!projectId || !subcontractor || !totalValue) {
+        addLog('ERROR: Completa todos los campos requeridos', 'error');
+        return;
+      }
+
+      if (withFile && !contractFile) {
+        addLog('ERROR: Selecciona un archivo', 'error');
+        return;
+      }
+
+      addLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+      addLog(`Iniciando creación de contrato ${withFile ? 'CON' : 'SIN'} archivo...`, 'info');
+      addLog(`Proyecto: ${projectId}`, 'info');
+      addLog(`Subcontratista: ${subcontractor}`, 'info');
+      addLog(`Servicio: ${serviceType}`, 'info');
+      addLog(`Valor: $${totalValue.toLocaleString()} USD`, 'info');
+
+      try {
+        // Verificar sesión
+        addLog('1️⃣ Verificando sesión...', 'info');
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          throw new Error('No hay sesión activa');
+        }
+        addLog('✓ Sesión válida', 'success');
+
+        let contractFileUrl = null;
+
+        // Subir archivo si existe
+        if (withFile && contractFile) {
+          addLog('2️⃣ Subiendo archivo al storage...', 'info');
+          const fileExt = contractFile.name.split('.').pop();
+          const sanitizedSubcontractor = subcontractor.replace(/[^a-zA-Z0-9]/g, '-');
+          const fileName = `${projectId}/${Date.now()}-${sanitizedSubcontractor}.${fileExt}`;
+
+          addLog(`Nombre de archivo: ${fileName}`, 'info');
+          addLog(`Tamaño: ${(contractFile.size / 1024 / 1024).toFixed(2)} MB`, 'info');
+
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('contracts')
+            .upload(fileName, contractFile, {
+              cacheControl: '3600',
+              upsert: false,
+            });
+
+          if (uploadError) {
+            addLog(`ERROR al subir archivo: ${uploadError.message}`, 'error');
+            addLog(`Detalles: ${JSON.stringify(uploadError)}`, 'error');
+            throw uploadError;
+          }
+
+          addLog('✓ Archivo subido exitosamente', 'success');
+          addLog(`Path: ${uploadData.path}`, 'info');
+
+          const { data: urlData } = supabase.storage
+            .from('contracts')
+            .getPublicUrl(fileName);
+
+          contractFileUrl = urlData.publicUrl;
+          addLog(`URL pública: ${contractFileUrl}`, 'info');
+        } else {
+          addLog('2️⃣ Saltando subida de archivo (no se seleccionó)', 'info');
+        }
+
+        // Crear contrato
+        addLog('3️⃣ Insertando contrato en la base de datos...', 'info');
+        const { data: contractData, error: contractError } = await supabase
+          .from('contracts')
+          .insert([
+            {
+              project_id: projectId,
+              subcontractor_name: subcontractor,
+              service_type: serviceType,
+              total_value_usd: totalValue,
+              paid_amount_usd: 0,
+              contract_pdf_url: contractFileUrl,
+            },
+          ])
+          .select()
+          .single();
+
+        if (contractError) {
+          addLog(`ERROR al crear contrato: ${contractError.message}`, 'error');
+          addLog(`Detalles: ${JSON.stringify(contractError)}`, 'error');
+          throw contractError;
+        }
+
+        addLog('✓ Contrato creado exitosamente', 'success');
+        addLog(`ID del contrato: ${contractData.id}`, 'info');
+
+        // Crear hitos de pago
+        addLog('4️⃣ Creando hitos de pago...', 'info');
+        const milestones = [
+          { milestone_name: 'Anticipo', percentage: 30, amount_usd: totalValue * 0.3, status: 'pending', order_index: 1 },
+          { milestone_name: 'Entrega Final', percentage: 70, amount_usd: totalValue * 0.7, status: 'pending', order_index: 2 },
+        ];
+
+        const milestonesData = milestones.map((m) => ({
+          contract_id: contractData.id,
+          milestone_name: m.milestone_name,
+          percentage: m.percentage,
+          amount_usd: m.amount_usd,
+          status: m.status,
+          order_index: m.order_index,
+        }));
+
+        const { error: milestonesError } = await supabase
+          .from('contract_payment_milestones')
+          .insert(milestonesData);
+
+        if (milestonesError) {
+          addLog(`ERROR al crear hitos: ${milestonesError.message}`, 'error');
+          throw milestonesError;
+        }
+
+        addLog('✓ Hitos de pago creados exitosamente', 'success');
+        addLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+        addLog('🎉 CONTRATO CREADO EXITOSAMENTE 🎉', 'success');
+        addLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+
+      } catch (error) {
+        addLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'error');
+        addLog('❌ ERROR AL CREAR CONTRATO', 'error');
+        addLog(`Mensaje: ${error.message}`, 'error');
+        if (error.details) {
+          addLog(`Detalles: ${error.details}`, 'error');
+        }
+        if (error.hint) {
+          addLog(`Sugerencia: ${error.hint}`, 'error');
+        }
+        addLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'error');
+      }
+    }
+  </script>
+</body>
+</html>
