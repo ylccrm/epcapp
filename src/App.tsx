@@ -8,13 +8,14 @@ import { Projects } from './components/Views/Projects';
 import { Inventory } from './components/Views/Inventory';
 import { Suppliers } from './components/Views/Suppliers';
 import { ProjectDetail } from './components/Views/ProjectDetail/ProjectDetail';
+import { InstallerView } from './components/Views/InstallerView';
 import { CreateProjectModal } from './components/Modals/CreateProjectModal';
 import { AuthPage } from './components/Auth/AuthPage';
 
 type ViewType = 'dashboard' | 'projects' | 'inventory' | 'providers' | 'project-detail';
 
 function AppContent() {
-  const { user, loading } = useAuth();
+  const { user, userProfile, loading } = useAuth();
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -62,6 +63,14 @@ function AppContent() {
 
   if (!user) {
     return <AuthPage />;
+  }
+
+  if (userProfile?.role === 'installer' || userProfile?.role === 'supervisor') {
+    return (
+      <ToastProvider>
+        <InstallerView />
+      </ToastProvider>
+    );
   }
 
   return (
