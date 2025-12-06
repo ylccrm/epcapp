@@ -128,24 +128,31 @@ export function Settings() {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newUser.email,
         password: newUser.password,
+        options: {
+          data: {
+            full_name: newUser.full_name,
+          }
+        }
       });
 
       if (authError) throw authError;
 
       if (authData.user) {
-        const { error: profileError } = await supabase.from('user_profiles').insert([
-          {
-            id: authData.user.id,
-            email: newUser.email,
-            full_name: newUser.full_name,
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        const { error: updateError } = await supabase
+          .from('user_profiles')
+          .update({
             role: newUser.role,
             phone: newUser.phone || null,
             assigned_crew_id: newUser.assigned_crew_id || null,
-            is_active: true,
-          },
-        ]);
+            full_name: newUser.full_name,
+          })
+          .eq('id', authData.user.id);
 
-        if (profileError) throw profileError;
+        if (updateError) {
+          console.error('Error updating profile:', updateError);
+        }
 
         await supabase.rpc('create_audit_log', {
           p_user_id: user?.id,
@@ -166,8 +173,8 @@ export function Settings() {
         });
 
         setShowNewUserForm(false);
-        loadUsers();
-        alert('Usuario creado exitosamente');
+        await loadUsers();
+        alert('Usuario creado exitosamente. El perfil se creará automáticamente.');
       }
     } catch (error: any) {
       console.error('Error creating user:', error);
