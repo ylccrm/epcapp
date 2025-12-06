@@ -32,9 +32,16 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (loading) return;
+
     setLoading(true);
 
     try {
+      if (!formData.name || !formData.client || !formData.capacity || !formData.location || !formData.budget) {
+        throw new Error('Por favor complete todos los campos obligatorios');
+      }
+
       let budgetUSD = parseFloat(formData.budget) || 0;
 
       if (currency === 'COP' && budgetUSD > 0) {
@@ -58,7 +65,10 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error al insertar proyecto:', error);
+        throw new Error(`Error de base de datos: ${error.message}`);
+      }
 
       if (data) {
         const standardMilestones = [
@@ -83,27 +93,41 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
           .from('project_milestones')
           .insert(milestones);
 
-        if (milestonesError) throw milestonesError;
+        if (milestonesError) {
+          console.error('Error al crear hitos:', milestonesError);
+          throw new Error(`Error al crear hitos: ${milestonesError.message}`);
+        }
+
+        setFormData({
+          name: '',
+          client: '',
+          projectType: 'Industrial',
+          capacity: '',
+          capacityUnit: 'kWp',
+          installationType: 'Techo (Roof)',
+          location: '',
+          budget: '',
+          startDate: '',
+          endDate: '',
+        });
+
+        onSuccess();
+        onClose();
+      }
+    } catch (error: any) {
+      console.error('Error creating project:', error);
+
+      let errorMessage = 'Error al crear el proyecto. Por favor intente de nuevo.';
+
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.code === 'PGRST116') {
+        errorMessage = 'Error de permisos. Verifica que estés autenticado.';
+      } else if (error.code === '23505') {
+        errorMessage = 'Ya existe un proyecto con ese nombre.';
       }
 
-      setFormData({
-        name: '',
-        client: '',
-        projectType: 'Industrial',
-        capacity: '',
-        capacityUnit: 'kWp',
-        installationType: 'Techo (Roof)',
-        location: '',
-        budget: '',
-        startDate: '',
-        endDate: '',
-      });
-
-      onSuccess();
-      onClose();
-    } catch (error) {
-      console.error('Error creating project:', error);
-      alert('Error al crear el proyecto. Por favor intente de nuevo.');
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }
