@@ -19,12 +19,12 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
   const [providers, setProviders] = useState<Provider[]>([]);
   const [formData, setFormData] = useState({
     equipment_name: '',
-    equipment_type: 'Inversor',
+    equipment_type: 'inverter',
     serial_number: '',
-    provider_name: '',
+    supplier: '',
     installation_date: '',
     warranty_years: '10',
-    location: '',
+    notes: '',
   });
 
   useEffect(() => {
@@ -90,10 +90,10 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
             equipment_name: formData.equipment_name,
             equipment_type: formData.equipment_type,
             serial_number: formData.serial_number,
-            provider_name: formData.provider_name || null,
+            supplier: formData.supplier || null,
             installation_date: formData.installation_date || null,
             warranty_years: parseInt(formData.warranty_years),
-            location: formData.location || null,
+            notes: formData.notes || null,
           },
         ]);
 
@@ -101,12 +101,12 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
 
       setFormData({
         equipment_name: '',
-        equipment_type: 'Inversor',
+        equipment_type: 'inverter',
         serial_number: '',
-        provider_name: '',
+        supplier: '',
         installation_date: '',
         warranty_years: '10',
-        location: '',
+        notes: '',
       });
 
       onSuccess();
@@ -172,14 +172,12 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
                 required
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none bg-white"
               >
-                <option>Inversor</option>
-                <option>Panel Solar</option>
-                <option>Medidor</option>
-                <option>Transformador</option>
-                <option>Estructura</option>
-                <option>Sistema de Monitoreo</option>
-                <option>Batería</option>
-                <option>Otro</option>
+                <option value="inverter">Inversor</option>
+                <option value="panel_batch">Panel Solar</option>
+                <option value="meter">Medidor</option>
+                <option value="transformer">Transformador</option>
+                <option value="battery">Batería</option>
+                <option value="other">Otro</option>
               </select>
             </div>
             <div>
@@ -203,8 +201,8 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
               Proveedor
             </label>
             <select
-              name="provider_name"
-              value={formData.provider_name}
+              name="supplier"
+              value={formData.supplier}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none bg-white"
             >
@@ -250,15 +248,15 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Ubicación (Opcional)
+              Notas (Opcional)
             </label>
             <input
               type="text"
-              name="location"
-              value={formData.location}
+              name="notes"
+              value={formData.notes}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none"
-              placeholder="Ej: Techo Sector A, Cuarto de Inversores"
+              placeholder="Ej: Ubicación, observaciones, detalles adicionales"
             />
           </div>
 
