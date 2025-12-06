@@ -7,12 +7,14 @@ import { Dashboard } from './components/Views/Dashboard';
 import { Projects } from './components/Views/Projects';
 import { Inventory } from './components/Views/Inventory';
 import { Suppliers } from './components/Views/Suppliers';
+import { Settings } from './components/Views/Settings';
+import { AuditLog } from './components/Views/AuditLog';
 import { ProjectDetail } from './components/Views/ProjectDetail/ProjectDetail';
 import { InstallerView } from './components/Views/InstallerView';
 import { CreateProjectModal } from './components/Modals/CreateProjectModal';
 import { AuthPage } from './components/Auth/AuthPage';
 
-type ViewType = 'dashboard' | 'projects' | 'inventory' | 'providers' | 'project-detail';
+type ViewType = 'dashboard' | 'projects' | 'inventory' | 'providers' | 'settings' | 'audit' | 'project-detail';
 
 function AppContent() {
   const { user, userProfile, loading } = useAuth();
@@ -43,6 +45,10 @@ function AppContent() {
         return 'Almacén Central';
       case 'providers':
         return 'Gestión de Proveedores';
+      case 'settings':
+        return 'Configuración del Sistema';
+      case 'audit':
+        return 'Registro de Auditoría';
       case 'project-detail':
         return 'Gestión de Proyecto';
       default:
@@ -90,6 +96,8 @@ function AppContent() {
           )}
           {currentView === 'inventory' && <Inventory />}
           {currentView === 'providers' && <Suppliers />}
+          {currentView === 'settings' && <Settings />}
+          {currentView === 'audit' && <AuditLog />}
           {currentView === 'project-detail' && selectedProjectId && (
             <ProjectDetail projectId={selectedProjectId} onNavigate={handleNavigate} />
           )}

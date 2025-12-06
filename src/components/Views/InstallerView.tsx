@@ -103,12 +103,36 @@ export function InstallerView() {
 
   async function updateMilestoneProgress(milestoneId: string, newProgress: number) {
     try {
+      const milestone = milestones.find((m) => m.id === milestoneId);
+      if (!milestone) return;
+
       const { error } = await supabase
         .from('project_milestones')
         .update({ progress_percentage: newProgress })
         .eq('id', milestoneId);
 
       if (error) throw error;
+
+      const auditLogId = await supabase.rpc('create_audit_log', {
+        p_user_id: user?.id,
+        p_user_email: user?.email || '',
+        p_action_type: 'update',
+        p_entity_type: 'milestone',
+        p_entity_id: milestoneId,
+        p_description: `Actualizó progreso de "${milestone.name}" a ${newProgress}%`,
+        p_metadata: { old_progress: milestone.progress_percentage, new_progress: newProgress },
+      });
+
+      await supabase.from('notifications').insert([
+        {
+          title: 'Actualización de Progreso',
+          message: `${user?.email} actualizó "${milestone.name}" a ${newProgress}%`,
+          type: 'info',
+          category: 'milestone',
+          related_project_id: selectedProject,
+          is_read: false,
+        },
+      ]);
 
       setMilestones((prev) =>
         prev.map((m) => (m.id === milestoneId ? { ...m, progress_percentage: newProgress } : m))
@@ -122,6 +146,8 @@ export function InstallerView() {
   async function uploadEvidence(milestoneId: string, file: File, description: string) {
     try {
       setUploadingEvidence(true);
+
+      const milestone = milestones.find((m) => m.id === milestoneId);
 
       const fileExt = file.name.split('.').pop();
       const fileName = `${selectedProject}/${milestoneId}/${Date.now()}.${fileExt}`;
@@ -148,6 +174,27 @@ export function InstallerView() {
       ]);
 
       if (dbError) throw dbError;
+
+      await supabase.rpc('create_audit_log', {
+        p_user_id: user?.id,
+        p_user_email: user?.email || '',
+        p_action_type: 'upload',
+        p_entity_type: 'milestone_evidence',
+        p_entity_id: milestoneId,
+        p_description: `Subió evidencia fotográfica: ${file.name}`,
+        p_metadata: { file_type: file.type, file_size: file.size, description },
+      });
+
+      await supabase.from('notifications').insert([
+        {
+          title: 'Nueva Evidencia Fotográfica',
+          message: `${user?.email} subió foto de "${milestone?.name || 'hito'}"${description ? ': ' + description : ''}`,
+          type: 'success',
+          category: 'milestone',
+          related_project_id: selectedProject,
+          is_read: false,
+        },
+      ]);
 
       alert('Evidencia subida exitosamente');
     } catch (error) {

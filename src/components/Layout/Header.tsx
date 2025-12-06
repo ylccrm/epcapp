@@ -1,4 +1,4 @@
-import { Plus, LogOut, User } from 'lucide-react';
+import { Plus, LogOut, User, Activity } from 'lucide-react';
 import { useCurrency } from '../../contexts/CurrencyContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { NotificationDropdown } from '../Notifications/NotificationDropdown';
@@ -11,7 +11,7 @@ interface HeaderProps {
 
 export function Header({ title, onNewProject, onNavigate }: HeaderProps) {
   const { currency, setCurrency } = useCurrency();
-  const { user, signOut } = useAuth();
+  const { user, userProfile, signOut } = useAuth();
 
   const handleSignOut = async () => {
     try {
@@ -50,6 +50,19 @@ export function Header({ title, onNewProject, onNavigate }: HeaderProps) {
         </div>
 
         <NotificationDropdown onNavigate={onNavigate} />
+
+        {userProfile?.role === 'admin' && onNavigate && (
+          <>
+            <div className="h-8 w-px bg-gray-200 mx-2"></div>
+            <button
+              onClick={() => onNavigate('audit')}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition"
+              title="Registro de Auditoría"
+            >
+              <Activity size={18} />
+            </button>
+          </>
+        )}
 
         <div className="h-8 w-px bg-gray-200 mx-2"></div>
 
