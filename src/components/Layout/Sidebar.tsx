@@ -1,4 +1,4 @@
-import { Sun, PieChart, Building2, Warehouse, Users, Settings, X } from 'lucide-react';
+import { Sun, PieChart, Building2, Warehouse, Users, Settings, X, Mail } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface SidebarProps {
@@ -14,6 +14,7 @@ export function Sidebar({ currentView, onNavigate, isOpen = true, onClose }: Sid
   const navItems = [
     { id: 'dashboard', icon: PieChart, label: 'Dashboard', section: 'Gestión' },
     { id: 'projects', icon: Building2, label: 'Proyectos', section: 'Gestión' },
+    { id: 'invitations', icon: Mail, label: 'Invitaciones', section: 'Gestión' },
     { id: 'inventory', icon: Warehouse, label: 'Almacén Central', section: 'Gestión' },
     { id: 'providers', icon: Users, label: 'Proveedores', section: 'Admin' },
     { id: 'settings', icon: Settings, label: 'Configuración', section: 'Admin' },
