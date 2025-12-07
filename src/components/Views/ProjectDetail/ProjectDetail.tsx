@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, ListTodo, DollarSign, Package, Server, Users, FolderOpen } from 'lucide-react';
+import { ArrowLeft, ListTodo, DollarSign, Package, Server, Users, FolderOpen, Share2 } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { useCurrency } from '../../../contexts/CurrencyContext';
+import { useAuth } from '../../../contexts/AuthContext';
 import type { Database } from '../../../lib/database.types';
 import { ProgressTab } from './ProgressTab';
 import { PaymentsTab } from './PaymentsTab';
@@ -9,6 +10,7 @@ import { MaterialsTab } from './MaterialsTab';
 import { EquipmentTab } from './EquipmentTab';
 import { CrewsTab } from './CrewsTab';
 import { DocsTab } from './DocsTab';
+import { ShareProjectModal } from '../../Modals/ShareProjectModal';
 
 type Project = Database['public']['Tables']['projects']['Row'];
 type TabType = 'progress' | 'payments' | 'materials' | 'equipment' | 'crews' | 'docs';
@@ -20,9 +22,11 @@ interface ProjectDetailProps {
 
 export function ProjectDetail({ projectId, onNavigate }: ProjectDetailProps) {
   const { formatAmount } = useCurrency();
+  const { userProfile } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('progress');
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   useEffect(() => {
     loadProject();
@@ -96,7 +100,7 @@ export function ProjectDetail({ projectId, onNavigate }: ProjectDetailProps) {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
         <div className="flex justify-between items-start">
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
               {project.name}
               <span className={`text-xs px-2 py-1 rounded-full border font-medium ${getStatusColor(project.status)}`}>
@@ -107,10 +111,21 @@ export function ProjectDetail({ projectId, onNavigate }: ProjectDetailProps) {
               Cliente: {project.client} | Ubicación: {project.location || 'Sin especificar'}
             </p>
           </div>
-          <div className="text-right">
-            <p className="text-sm text-gray-500">Presupuesto Total</p>
-            <div className="text-2xl font-bold text-slate-800">
-              {formatAmount(Number(project.total_budget_usd))}
+          <div className="flex items-start gap-4">
+            {(userProfile?.role === 'admin' || project.created_by === userProfile?.id) && (
+              <button
+                onClick={() => setIsShareModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition font-medium text-sm"
+              >
+                <Share2 size={16} />
+                Compartir
+              </button>
+            )}
+            <div className="text-right">
+              <p className="text-sm text-gray-500">Presupuesto Total</p>
+              <div className="text-2xl font-bold text-slate-800">
+                {formatAmount(Number(project.total_budget_usd))}
+              </div>
             </div>
           </div>
         </div>
@@ -145,6 +160,15 @@ export function ProjectDetail({ projectId, onNavigate }: ProjectDetailProps) {
         {activeTab === 'crews' && <CrewsTab projectId={projectId} />}
         {activeTab === 'docs' && <DocsTab projectId={projectId} />}
       </div>
+
+      {project && (
+        <ShareProjectModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          projectId={projectId}
+          projectName={project.name}
+        />
+      )}
     </div>
   );
 }
