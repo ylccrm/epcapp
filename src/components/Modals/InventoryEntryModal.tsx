@@ -10,7 +10,7 @@ interface InventoryEntryModalProps {
 
 interface InventoryItem {
   id: string;
-  name: string;
+  product_name: string;
   category: string;
 }
 
@@ -44,8 +44,8 @@ export function InventoryEntryModal({ isOpen, onClose, onSuccess }: InventoryEnt
     try {
       const { data, error } = await supabase
         .from('inventory_items')
-        .select('id, name, category')
-        .order('name');
+        .select('id, product_name, category')
+        .order('product_name');
 
       if (error) throw error;
       setInventoryItems(data || []);
@@ -189,7 +189,7 @@ export function InventoryEntryModal({ isOpen, onClose, onSuccess }: InventoryEnt
               <option value="">Seleccionar producto...</option>
               {inventoryItems.map((item) => (
                 <option key={item.id} value={item.id}>
-                  {item.name} ({item.category})
+                  {item.product_name} ({item.category})
                 </option>
               ))}
             </select>

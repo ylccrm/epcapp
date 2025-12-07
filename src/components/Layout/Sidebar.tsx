@@ -1,4 +1,4 @@
-import { Sun, PieChart, Building2, Warehouse, Users, Settings } from 'lucide-react';
+import { Sun, PieChart, Building2, Warehouse, Settings } from 'lucide-react';
 
 interface SidebarProps {
   currentView: string;
@@ -10,8 +10,7 @@ export function Sidebar({ currentView, onNavigate }: SidebarProps) {
     { id: 'dashboard', icon: PieChart, label: 'Dashboard', section: 'Gestión' },
     { id: 'projects', icon: Building2, label: 'Proyectos', section: 'Gestión' },
     { id: 'inventory', icon: Warehouse, label: 'Almacén Central', section: 'Gestión' },
-    { id: 'providers', icon: Users, label: 'Proveedores', section: 'Admin' },
-    { id: 'settings', icon: Settings, label: 'Configuración', section: 'Admin' },
+    { id: 'providers', icon: Settings, label: 'Proveedores', section: 'Admin' },
   ];
 
   const sections = ['Gestión', 'Admin'];
