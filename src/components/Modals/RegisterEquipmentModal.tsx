@@ -177,10 +177,10 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
   return (
     <div
       onClick={handleBackdropClick}
-      className="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center fade-in"
+      className="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center fade-in p-4"
     >
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden m-4">
-        <div className="px-6 py-4 border-b border-gray-200 bg-slate-900 flex justify-between items-center">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200 bg-slate-900 flex justify-between items-center shrink-0">
           <h3 className="font-bold text-lg text-white">Registrar Equipo</h3>
           <button
             onClick={onClose}
@@ -191,7 +191,8 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          <div className="p-6 space-y-3 overflow-y-auto flex-1">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Nombre del Equipo *
@@ -321,11 +322,11 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
             />
           </div>
 
-          <div className="border-t border-gray-200 pt-4 space-y-4">
+          <div className="border-t border-gray-200 pt-3 space-y-3">
             <h4 className="text-sm font-semibold text-gray-700">Documentos</h4>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Manual del Equipo
               </label>
               <div className="relative">
@@ -338,9 +339,9 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
                 />
                 <label
                   htmlFor="manual-file"
-                  className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-gray-300 rounded-lg px-4 py-3 cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition"
+                  className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-gray-300 rounded-lg px-4 py-2.5 cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition"
                 >
-                  <Upload size={18} className="text-gray-500" />
+                  <Upload size={16} className="text-gray-500" />
                   <span className="text-sm text-gray-600">
                     {manualFile ? manualFile.name : 'Subir manual (PDF, DOC)'}
                   </span>
@@ -349,7 +350,7 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Factura de Compra
               </label>
               <div className="relative">
@@ -362,9 +363,9 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
                 />
                 <label
                   htmlFor="invoice-file"
-                  className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-gray-300 rounded-lg px-4 py-3 cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition"
+                  className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-gray-300 rounded-lg px-4 py-2.5 cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition"
                 >
-                  <Upload size={18} className="text-gray-500" />
+                  <Upload size={16} className="text-gray-500" />
                   <span className="text-sm text-gray-600">
                     {invoiceFile ? invoiceFile.name : 'Subir factura (PDF, JPG, PNG)'}
                   </span>
@@ -372,8 +373,9 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
               </div>
             </div>
           </div>
+          </div>
 
-          <div className="pt-4 flex justify-end gap-3">
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 shrink-0">
             <button
               type="button"
               onClick={onClose}
