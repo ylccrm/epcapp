@@ -112,15 +112,14 @@ export function ProjectDetail({ projectId, onNavigate }: ProjectDetailProps) {
             </p>
           </div>
           <div className="flex items-start gap-4">
-            {(userProfile?.role === 'admin' || project.created_by === userProfile?.id) && (
-              <button
-                onClick={() => setIsShareModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition font-medium text-sm"
-              >
-                <Share2 size={16} />
-                Compartir
-              </button>
-            )}
+            <button
+              onClick={() => setIsShareModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm shadow-md"
+              title="Compartir proyecto con otros usuarios"
+            >
+              <Share2 size={16} />
+              Compartir
+            </button>
             <div className="text-right">
               <p className="text-sm text-gray-500">Presupuesto Total</p>
               <div className="text-2xl font-bold text-slate-800">

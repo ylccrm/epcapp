@@ -27,6 +27,7 @@ export function ShareProjectModal({ isOpen, onClose, projectId, projectName }: S
   const [selectedUser, setSelectedUser] = useState<string>('');
   const [selectedRole, setSelectedRole] = useState<'viewer' | 'editor'>('viewer');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -48,6 +49,10 @@ export function ShareProjectModal({ isOpen, onClose, projectId, projectName }: S
 
       if (error) throw error;
       setCollaborators((data as any) || []);
+
+      // Determine current user's role in this project
+      const currentUserCollab = (data as any)?.find((c: any) => c.user_id === userProfile?.id);
+      setUserRole(currentUserCollab?.role || (userProfile?.role === 'admin' ? 'admin' : null));
     } catch (error) {
       console.error('Error loading collaborators:', error);
       showToast('Error al cargar colaboradores', 'error');
@@ -201,16 +206,38 @@ export function ShareProjectModal({ isOpen, onClose, projectId, projectName }: S
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
+          {userRole && (
+            <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm text-blue-800">
+                <strong>Tu rol en este proyecto:</strong>{' '}
+                {userRole === 'owner' && 'Propietario (control total)'}
+                {userRole === 'editor' && 'Editor (puedes modificar)'}
+                {userRole === 'viewer' && 'Visualizador (solo lectura)'}
+                {userRole === 'admin' && 'Super Administrador (control total)'}
+              </p>
+            </div>
+          )}
+
+          {!userRole && (
+            <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+              <p className="text-sm text-yellow-800">
+                <strong>Aviso:</strong> No tienes permisos para modificar este proyecto. Solo puedes ver los colaboradores actuales.
+              </p>
+            </div>
+          )}
+
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
               <h4 className="font-semibold text-gray-900">Colaboradores Actuales</h4>
-              <button
-                onClick={() => setShowAddForm(!showAddForm)}
-                className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition"
-              >
-                <UserPlus size={16} />
-                Agregar Colaborador
-              </button>
+              {(userRole === 'owner' || userRole === 'admin') && (
+                <button
+                  onClick={() => setShowAddForm(!showAddForm)}
+                  className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition"
+                >
+                  <UserPlus size={16} />
+                  Agregar Colaborador
+                </button>
+              )}
             </div>
 
             {showAddForm && (
@@ -296,7 +323,7 @@ export function ShareProjectModal({ isOpen, onClose, projectId, projectName }: S
                         {getRoleLabel(collaborator.role)}
                       </span>
 
-                      {collaborator.role !== 'owner' && (
+                      {collaborator.role !== 'owner' && (userRole === 'owner' || userRole === 'admin') && (
                         <button
                           onClick={() => handleRemoveCollaborator(collaborator.id, collaborator.role)}
                           disabled={loading}
