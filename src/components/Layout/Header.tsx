@@ -1,4 +1,4 @@
-import { Plus, LogOut, User } from 'lucide-react';
+import { Plus, LogOut, User, Activity, Menu } from 'lucide-react';
 import { useCurrency } from '../../contexts/CurrencyContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { NotificationDropdown } from '../Notifications/NotificationDropdown';
@@ -7,11 +7,12 @@ interface HeaderProps {
   title: string;
   onNewProject?: () => void;
   onNavigate?: (view: string, projectId?: string) => void;
+  onMenuToggle?: () => void;
 }
 
-export function Header({ title, onNewProject, onNavigate }: HeaderProps) {
+export function Header({ title, onNewProject, onNavigate, onMenuToggle }: HeaderProps) {
   const { currency, setCurrency } = useCurrency();
-  const { user, signOut } = useAuth();
+  const { user, userProfile, signOut } = useAuth();
 
   const handleSignOut = async () => {
     try {
@@ -22,27 +23,38 @@ export function Header({ title, onNewProject, onNavigate }: HeaderProps) {
   };
 
   return (
-    <header className="h-16 bg-white shadow-sm border-b border-gray-200 flex justify-between items-center px-8 z-10 shrink-0">
-      <h2 className="text-xl font-bold text-slate-800">{title}</h2>
-
+    <header className="h-20 bg-white/80 apple-glass border-b border-gray-200/50 flex justify-between items-center px-6 md:px-8 z-50 shrink-0 sticky top-0">
       <div className="flex items-center gap-4">
-        <div className="flex items-center bg-gray-100 rounded-lg p-1 border border-gray-200 mr-2">
+        {onMenuToggle && (
+          <button
+            onClick={onMenuToggle}
+            className="lg:hidden p-2 hover:bg-gray-100 rounded-xl transition-colors"
+            aria-label="Toggle menu"
+          >
+            <Menu size={24} className="text-slate-800" />
+          </button>
+        )}
+        <h2 className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight">{title}</h2>
+      </div>
+
+      <div className="flex items-center gap-2 md:gap-4">
+        <div className="hidden sm:flex items-center bg-gray-100/80 rounded-xl p-1">
           <button
             onClick={() => setCurrency('COP')}
-            className={`px-3 py-1 rounded text-xs font-bold transition ${
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
               currency === 'COP'
-                ? 'bg-white shadow-sm text-slate-800 border border-gray-200'
-                : 'text-gray-500 hover:bg-white hover:shadow-sm'
+                ? 'bg-white shadow-sm text-slate-900'
+                : 'text-gray-600 hover:text-slate-900'
             }`}
           >
             COP
           </button>
           <button
             onClick={() => setCurrency('USD')}
-            className={`px-3 py-1 rounded text-xs font-bold transition ${
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
               currency === 'USD'
-                ? 'bg-white shadow-sm text-slate-800 border border-gray-200'
-                : 'text-gray-500 hover:bg-white hover:shadow-sm'
+                ? 'bg-white shadow-sm text-slate-900'
+                : 'text-gray-600 hover:text-slate-900'
             }`}
           >
             USD
@@ -51,31 +63,39 @@ export function Header({ title, onNewProject, onNavigate }: HeaderProps) {
 
         <NotificationDropdown onNavigate={onNavigate} />
 
-        <div className="h-8 w-px bg-gray-200 mx-2"></div>
+        {userProfile?.role === 'admin' && onNavigate && (
+          <button
+            onClick={() => onNavigate('audit')}
+            className="hidden md:flex items-center justify-center w-10 h-10 text-slate-700 hover:bg-gray-100 rounded-xl transition-all active:scale-95"
+            title="Registro de Auditoría"
+          >
+            <Activity size={20} />
+          </button>
+        )}
 
         {onNewProject && (
           <button
             onClick={onNewProject}
-            className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-lg shadow-slate-900/20 flex items-center"
+            className="hidden md:flex apple-button-primary items-center gap-2"
           >
-            <Plus size={16} className="mr-2" />
-            Nuevo Proyecto
+            <Plus size={18} />
+            <span>Nuevo Proyecto</span>
           </button>
         )}
 
-        <div className="h-8 w-px bg-gray-200 mx-2"></div>
-
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-sm text-gray-700">
-            <User size={16} className="text-gray-500" />
-            <span className="font-medium">{user?.email}</span>
+        <div className="hidden sm:flex items-center gap-3 pl-4 ml-4 border-l border-gray-200">
+          <div className="hidden lg:flex items-center gap-2 text-sm">
+            <div className="w-8 h-8 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center">
+              <User size={16} className="text-white" />
+            </div>
+            <span className="font-medium text-slate-800 max-w-[150px] truncate">{user?.email}</span>
           </div>
           <button
             onClick={handleSignOut}
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition"
+            className="flex items-center justify-center w-10 h-10 text-slate-700 hover:bg-gray-100 rounded-xl transition-all active:scale-95"
             title="Cerrar Sesión"
           >
-            <LogOut size={16} />
+            <LogOut size={18} />
           </button>
         </div>
       </div>

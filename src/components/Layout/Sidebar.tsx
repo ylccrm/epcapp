@@ -1,77 +1,133 @@
-import { Sun, PieChart, Building2, Warehouse, Settings } from 'lucide-react';
+import { Sun, PieChart, Building2, Warehouse, Users, Settings, X, Mail } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface SidebarProps {
   currentView: string;
   onNavigate: (view: string) => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export function Sidebar({ currentView, onNavigate }: SidebarProps) {
+export function Sidebar({ currentView, onNavigate, isOpen = true, onClose }: SidebarProps) {
+  const { user, userProfile } = useAuth();
+
   const navItems = [
     { id: 'dashboard', icon: PieChart, label: 'Dashboard', section: 'Gestión' },
     { id: 'projects', icon: Building2, label: 'Proyectos', section: 'Gestión' },
+    { id: 'invitations', icon: Mail, label: 'Invitaciones', section: 'Gestión' },
     { id: 'inventory', icon: Warehouse, label: 'Almacén Central', section: 'Gestión' },
-    { id: 'providers', icon: Settings, label: 'Proveedores', section: 'Admin' },
+    { id: 'providers', icon: Users, label: 'Proveedores', section: 'Admin' },
+    { id: 'settings', icon: Settings, label: 'Configuración', section: 'Admin' },
   ];
 
   const sections = ['Gestión', 'Admin'];
 
+  const handleNavigation = (view: string) => {
+    onNavigate(view);
+    if (onClose) {
+      onClose();
+    }
+  };
+
   return (
-    <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col shadow-2xl z-20 shrink-0">
-      <div className="h-16 flex items-center px-6 bg-slate-950 border-b border-slate-800">
-        <Sun className="text-yellow-500 text-xl mr-3" size={24} />
-        <span className="text-white font-bold text-lg tracking-wide">
-          Solar<span className="text-yellow-500">EPC</span>
-        </span>
-      </div>
+    <>
+      {isOpen && onClose && (
+        <div
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden fade-in"
+          onClick={onClose}
+        />
+      )}
 
-      <nav className="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
-        {sections.map((section) => (
-          <div key={section}>
-            <p className="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-4 first:mt-0">
-              {section}
-            </p>
-            {navItems
-              .filter((item) => item.section === section)
-              .map((item) => {
-                const Icon = item.icon;
-                const isActive = currentView === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => onNavigate(item.id)}
-                    className={`w-full flex items-center px-3 py-2.5 rounded-lg transition-colors group ${
-                      isActive
-                        ? 'bg-slate-800 text-white'
-                        : 'hover:bg-slate-800 hover:text-white'
-                    }`}
-                  >
-                    <Icon
-                      className={`w-6 mr-3 transition-colors ${
-                        isActive ? 'text-yellow-500' : 'group-hover:text-yellow-500'
-                      }`}
-                      size={20}
-                    />
-                    <span className="font-medium">{item.label}</span>
-                  </button>
-                );
-              })}
+      <aside
+        className={`
+        fixed lg:static inset-y-0 left-0
+        w-64 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950
+        text-slate-300 flex flex-col shadow-2xl z-50 shrink-0
+        transform transition-transform duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}
+      >
+        <div className="h-20 flex items-center justify-between px-6 border-b border-slate-800/50">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-500 rounded-xl flex items-center justify-center shadow-lg">
+              <Sun size={22} className="text-slate-900" />
+            </div>
+            <span className="text-white font-bold text-xl tracking-tight">
+              Solar<span className="text-amber-400">EPC</span>
+            </span>
           </div>
-        ))}
-      </nav>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="lg:hidden p-2 hover:bg-slate-800 rounded-xl transition-colors"
+            >
+              <X size={20} />
+            </button>
+          )}
+        </div>
 
-      <div className="p-4 border-t border-slate-800 bg-slate-900">
-        <div className="flex items-center w-full">
-          <img
-            className="h-9 w-9 rounded-full border border-slate-600"
-            src="https://ui-avatars.com/api/?name=Admin+User&background=f59e0b&color=fff"
-            alt="User"
-          />
-          <div className="ml-3">
-            <p className="text-sm font-medium text-white">Ing. Jefe</p>
-            <p className="text-xs text-slate-500">Administrador</p>
+        <nav className="flex-1 py-6 px-4 space-y-1 overflow-y-auto scrollbar-hide">
+          {sections.map((section) => (
+            <div key={section} className="mb-6">
+              <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">
+                {section}
+              </p>
+              <div className="space-y-1">
+                {navItems
+                  .filter((item) => item.section === section)
+                  .map((item) => {
+                    const Icon = item.icon;
+                    const isActive = currentView === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => handleNavigation(item.id)}
+                        className={`
+                        w-full flex items-center px-4 py-3 rounded-xl
+                        transition-all duration-200 group relative overflow-hidden
+                        ${
+                          isActive
+                            ? 'bg-amber-400/10 text-white'
+                            : 'hover:bg-slate-800/50 text-slate-400 hover:text-white'
+                        }
+                      `}
+                      >
+                        {isActive && (
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-amber-400 rounded-r-full" />
+                        )}
+                        <Icon
+                          className={`
+                          w-5 h-5 mr-3 transition-all duration-200
+                          ${isActive ? 'text-amber-400' : 'text-slate-500 group-hover:text-amber-400'}
+                        `}
+                        />
+                        <span className="font-medium text-sm">{item.label}</span>
+                      </button>
+                    );
+                  })}
+              </div>
+            </div>
+          ))}
+        </nav>
+
+        <div className="p-4 border-t border-slate-800/50 bg-slate-900/50">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-800/30 border border-slate-700/30">
+            <div className="w-10 h-10 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center ring-2 ring-slate-700">
+              <span className="text-white font-bold text-sm">
+                {user?.email?.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-white truncate">{user?.email?.split('@')[0]}</p>
+              <p className="text-[11px] text-slate-400 font-medium">
+                {userProfile?.role === 'admin' ? 'Administrador' :
+                 userProfile?.role === 'regular' ? 'Usuario Normal' :
+                 userProfile?.role === 'supervisor' ? 'Supervisor' : 'Instalador'}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }

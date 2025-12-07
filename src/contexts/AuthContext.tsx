@@ -6,7 +6,7 @@ interface UserProfile {
   id: string;
   email: string;
   full_name: string;
-  role: 'admin' | 'installer' | 'supervisor';
+  role: 'admin' | 'regular' | 'installer' | 'supervisor';
   phone: string | null;
   assigned_crew_id: string | null;
   is_active: boolean;
@@ -29,9 +29,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
+        await checkAndRefreshSession(session.user);
         loadUserProfile(session.user.id);
       } else {
         setLoading(false);
@@ -49,6 +50,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const checkAndRefreshSession = async (user: User) => {
+    const roleInJWT = user.app_metadata?.role;
+
+    if (!roleInJWT) {
+      console.log('Role not found in JWT, refreshing session...');
+      try {
+        await supabase.auth.refreshSession();
+      } catch (error) {
+        console.error('Error refreshing session:', error);
+      }
+    }
+  };
 
   const loadUserProfile = async (userId: string) => {
     try {

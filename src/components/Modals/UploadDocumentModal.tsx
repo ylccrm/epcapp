@@ -19,16 +19,18 @@ export function UploadDocumentModal({ isOpen, onClose, projectId, category, onSu
     description: '',
   });
 
-  const allowedTypes = [
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'image/jpeg',
-    'image/png',
-    'image/jpg',
-  ];
+  const allowedTypes = category === 'delivery'
+    ? ['application/pdf']
+    : [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'image/jpeg',
+        'image/png',
+        'image/jpg',
+      ];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -63,7 +65,10 @@ export function UploadDocumentModal({ isOpen, onClose, projectId, category, onSu
 
   const handleFile = (selectedFile: File) => {
     if (!allowedTypes.includes(selectedFile.type)) {
-      alert('Tipo de archivo no permitido. Use PDF, DOC, DOCX, XLS, XLSX, JPG o PNG');
+      const errorMessage = category === 'delivery'
+        ? 'Solo se permiten archivos PDF para documentos de entrega'
+        : 'Tipo de archivo no permitido. Use PDF, DOC, DOCX, XLS, XLSX, JPG o PNG';
+      alert(errorMessage);
       return;
     }
 
@@ -178,7 +183,7 @@ export function UploadDocumentModal({ isOpen, onClose, projectId, category, onSu
             >
               <input
                 type="file"
-                accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
+                accept={category === 'delivery' ? '.pdf' : '.pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png'}
                 onChange={handleFileChange}
                 className="hidden"
                 id="file-upload"
@@ -200,7 +205,7 @@ export function UploadDocumentModal({ isOpen, onClose, projectId, category, onSu
                     Arrastre un archivo aquí o haga clic para seleccionar
                   </p>
                   <p className="text-xs text-gray-400 mt-2">
-                    PDF, DOC, DOCX, XLS, XLSX, JPG, PNG (máx 10MB)
+                    {category === 'delivery' ? 'Solo PDF (máx 10MB)' : 'PDF, DOC, DOCX, XLS, XLSX, JPG, PNG (máx 10MB)'}
                   </p>
                 </label>
               )}
