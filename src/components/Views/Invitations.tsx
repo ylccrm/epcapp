@@ -44,7 +44,7 @@ export function Invitations() {
         .select(`
           *,
           project:projects(client, name, location),
-          owner:user_profiles!owner_id(email, full_name)
+          owner:user_profiles!shared_project_requests_owner_id_fkey(email, full_name)
         `)
         .eq('invited_user_id', user?.id)
         .order('created_at', { ascending: false });
@@ -56,7 +56,7 @@ export function Invitations() {
         .select(`
           *,
           project:projects(client, name, location),
-          invited:user_profiles!invited_user_id(email, full_name)
+          invited:user_profiles!shared_project_requests_invited_user_id_fkey(email, full_name)
         `)
         .eq('owner_id', user?.id)
         .order('created_at', { ascending: false });
