@@ -12,11 +12,11 @@ interface AssignCrewModalProps {
 export function AssignCrewModal({ isOpen, onClose, projectId, onSuccess }: AssignCrewModalProps) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    crew_name: '',
-    leader_name: '',
-    members: '',
-    specialty: 'Instalación Eléctrica',
-    contact_phone: '',
+    name: '',
+    leader: '',
+    members_count: '1',
+    specialty: 'instalacion',
+    phone: '',
     status: 'active',
     current_task: '',
   });
@@ -32,21 +32,16 @@ export function AssignCrewModal({ isOpen, onClose, projectId, onSuccess }: Assig
     setLoading(true);
 
     try {
-      const membersArray = formData.members
-        .split(',')
-        .map((m) => m.trim())
-        .filter((m) => m.length > 0);
-
       const { error } = await supabase
         .from('project_crews')
         .insert([
           {
             project_id: projectId,
-            crew_name: formData.crew_name,
-            leader_name: formData.leader_name,
-            members: membersArray,
+            name: formData.name,
+            leader: formData.leader,
+            members_count: parseInt(formData.members_count) || 1,
             specialty: formData.specialty,
-            contact_phone: formData.contact_phone || null,
+            phone: formData.phone || null,
             status: formData.status,
             current_task: formData.current_task || null,
           },
@@ -55,11 +50,11 @@ export function AssignCrewModal({ isOpen, onClose, projectId, onSuccess }: Assig
       if (error) throw error;
 
       setFormData({
-        crew_name: '',
-        leader_name: '',
-        members: '',
-        specialty: 'Instalación Eléctrica',
-        contact_phone: '',
+        name: '',
+        leader: '',
+        members_count: '1',
+        specialty: 'instalacion',
+        phone: '',
         status: 'active',
         current_task: '',
       });
@@ -106,8 +101,8 @@ export function AssignCrewModal({ isOpen, onClose, projectId, onSuccess }: Assig
             </label>
             <input
               type="text"
-              name="crew_name"
-              value={formData.crew_name}
+              name="name"
+              value={formData.name}
               onChange={handleChange}
               required
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none"
@@ -122,8 +117,8 @@ export function AssignCrewModal({ isOpen, onClose, projectId, onSuccess }: Assig
               </label>
               <input
                 type="text"
-                name="leader_name"
-                value={formData.leader_name}
+                name="leader"
+                value={formData.leader}
                 onChange={handleChange}
                 required
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none"
@@ -136,8 +131,8 @@ export function AssignCrewModal({ isOpen, onClose, projectId, onSuccess }: Assig
               </label>
               <input
                 type="tel"
-                name="contact_phone"
-                value={formData.contact_phone}
+                name="phone"
+                value={formData.phone}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none"
                 placeholder="+57 300 123 4567"
@@ -147,18 +142,20 @@ export function AssignCrewModal({ isOpen, onClose, projectId, onSuccess }: Assig
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Miembros (separados por comas)
+              Número de Miembros *
             </label>
             <input
-              type="text"
-              name="members"
-              value={formData.members}
+              type="number"
+              name="members_count"
+              value={formData.members_count}
               onChange={handleChange}
+              required
+              min="1"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none"
-              placeholder="Juan Pérez, María García, Carlos López"
+              placeholder="Ej: 5"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Ingrese los nombres separados por comas
+              Ingrese la cantidad total de miembros en la cuadrilla
             </p>
           </div>
 
@@ -174,12 +171,10 @@ export function AssignCrewModal({ isOpen, onClose, projectId, onSuccess }: Assig
                 required
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none bg-white"
               >
-                <option>Instalación Eléctrica</option>
-                <option>Obra Civil</option>
-                <option>Montaje Mecánico</option>
-                <option>Estructura</option>
-                <option>HSE / Seguridad</option>
-                <option>General</option>
+                <option value="instalacion">Instalación</option>
+                <option value="electrico">Eléctrico</option>
+                <option value="montaje">Montaje</option>
+                <option value="supervision">Supervisión</option>
               </select>
             </div>
             <div>
@@ -194,7 +189,7 @@ export function AssignCrewModal({ isOpen, onClose, projectId, onSuccess }: Assig
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none bg-white"
               >
                 <option value="active">Activo</option>
-                <option value="on_break">De Descanso</option>
+                <option value="on_leave">De Descanso</option>
                 <option value="inactive">Inactivo</option>
               </select>
             </div>

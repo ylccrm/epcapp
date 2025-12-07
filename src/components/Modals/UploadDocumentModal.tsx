@@ -111,9 +111,8 @@ export function UploadDocumentModal({ isOpen, onClose, projectId, category, onSu
         .insert([
           {
             project_id: projectId,
-            doc_category: category,
-            doc_name: formData.name,
-            description: formData.description || null,
+            category: category,
+            file_name: formData.name,
             file_url: urlData.publicUrl,
             file_size: file.size,
             file_type: file.type,
