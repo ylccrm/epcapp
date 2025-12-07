@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Users, Globe, Plus, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Settings as SettingsIcon, Users, Globe, Plus, Trash2, Eye, EyeOff, Edit2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { EditUserModal } from '../Modals/EditUserModal';
 
 interface UserProfile {
   id: string;
@@ -27,6 +28,8 @@ export function Settings() {
   const [crews, setCrews] = useState<Crew[]>([]);
   const [loading, setLoading] = useState(false);
   const [showNewUserForm, setShowNewUserForm] = useState(false);
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [newUser, setNewUser] = useState({
     email: '',
     password: '',
@@ -208,6 +211,17 @@ export function Settings() {
     }
   }
 
+  function handleEditUser(user: UserProfile) {
+    setSelectedUser(user);
+    setShowEditUserModal(true);
+  }
+
+  function handleEditUserSuccess() {
+    loadUsers();
+    setShowEditUserModal(false);
+    setSelectedUser(null);
+  }
+
   const getRoleBadge = (role: string) => {
     const badges = {
       admin: 'bg-red-100 text-red-800',
@@ -381,6 +395,7 @@ export function Settings() {
                         onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2"
                       >
+                        <option value="regular">Regular</option>
                         <option value="installer">Instalador</option>
                         <option value="supervisor">Supervisor</option>
                         <option value="admin">Administrador</option>
@@ -449,13 +464,22 @@ export function Settings() {
                         <p className="text-xs text-gray-500 mt-0.5">{u.phone}</p>
                       )}
                     </div>
-                    <button
-                      onClick={() => toggleUserStatus(u.id, u.is_active)}
-                      className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition"
-                      title={u.is_active ? 'Desactivar' : 'Activar'}
-                    >
-                      {u.is_active ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleEditUser(u)}
+                        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                        title="Editar usuario"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => toggleUserStatus(u.id, u.is_active)}
+                        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition"
+                        title={u.is_active ? 'Desactivar' : 'Activar'}
+                      >
+                        {u.is_active ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -463,6 +487,19 @@ export function Settings() {
           )}
         </div>
       </div>
+
+      {selectedUser && (
+        <EditUserModal
+          isOpen={showEditUserModal}
+          onClose={() => {
+            setShowEditUserModal(false);
+            setSelectedUser(null);
+          }}
+          onSuccess={handleEditUserSuccess}
+          user={selectedUser}
+          crews={crews}
+        />
+      )}
     </div>
   );
 }
