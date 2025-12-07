@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Server, Plus } from 'lucide-react';
+import { Server, Plus, Eye } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { RegisterEquipmentModal } from '../../Modals/RegisterEquipmentModal';
+import { ViewEquipmentModal } from '../../Modals/ViewEquipmentModal';
 import type { Database } from '../../../lib/database.types';
 
 type ProjectEquipment = Database['public']['Tables']['project_equipment']['Row'];
@@ -14,6 +15,8 @@ export function EquipmentTab({ projectId }: EquipmentTabProps) {
   const [equipment, setEquipment] = useState<ProjectEquipment[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEquipment, setSelectedEquipment] = useState<ProjectEquipment | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   useEffect(() => {
     loadEquipment();
@@ -91,6 +94,7 @@ export function EquipmentTab({ projectId }: EquipmentTabProps) {
                   <th className="pb-2">Proveedor</th>
                   <th className="pb-2">Fecha Instalación</th>
                   <th className="pb-2 text-center">Garantía</th>
+                  <th className="pb-2 text-center">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -131,6 +135,18 @@ export function EquipmentTab({ projectId }: EquipmentTabProps) {
                         <span className="text-gray-400 text-xs">-</span>
                       )}
                     </td>
+                    <td className="py-3 text-center">
+                      <button
+                        onClick={() => {
+                          setSelectedEquipment(item);
+                          setIsViewModalOpen(true);
+                        }}
+                        className="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition"
+                      >
+                        <Eye size={14} />
+                        Ver
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -145,6 +161,17 @@ export function EquipmentTab({ projectId }: EquipmentTabProps) {
         projectId={projectId}
         onSuccess={loadEquipment}
       />
+
+      {selectedEquipment && (
+        <ViewEquipmentModal
+          isOpen={isViewModalOpen}
+          onClose={() => {
+            setIsViewModalOpen(false);
+            setSelectedEquipment(null);
+          }}
+          equipment={selectedEquipment}
+        />
+      )}
     </div>
   );
 }
