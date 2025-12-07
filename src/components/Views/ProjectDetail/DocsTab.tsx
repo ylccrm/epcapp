@@ -41,7 +41,6 @@ export function DocsTab({ projectId }: DocsTabProps) {
     { id: 'engineering', label: 'Ingeniería', color: 'blue' },
     { id: 'legal', label: 'Legal', color: 'purple' },
     { id: 'hse', label: 'HSE', color: 'green' },
-    { id: 'delivery', label: 'Entrega', color: 'orange' },
   ];
 
   const getDocsCountByCategory = (categoryId: string) => {
@@ -53,7 +52,6 @@ export function DocsTab({ projectId }: DocsTabProps) {
       engineering: 'border-blue-100 bg-blue-50/50 hover:bg-blue-50 text-blue-300',
       legal: 'border-purple-100 bg-purple-50/50 hover:bg-purple-50 text-purple-300',
       hse: 'border-green-100 bg-green-50/50 hover:bg-green-50 text-green-300',
-      delivery: 'border-orange-100 bg-orange-50/50 hover:bg-orange-50 text-orange-300',
     };
     return colors[category] || colors.engineering;
   };
@@ -63,7 +61,6 @@ export function DocsTab({ projectId }: DocsTabProps) {
       engineering: 'text-blue-900',
       legal: 'text-purple-900',
       hse: 'text-green-900',
-      delivery: 'text-orange-900',
     };
     return colors[category] || colors.engineering;
   };
