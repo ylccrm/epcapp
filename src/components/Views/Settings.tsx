@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Users, Globe, Plus, Trash2, Eye, EyeOff, Edit2 } from 'lucide-react';
+import { Settings as SettingsIcon, Users, Globe, Plus, Trash2, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { EditUserModal } from '../Modals/EditUserModal';
 
 interface UserProfile {
   id: string;
@@ -28,8 +27,6 @@ export function Settings() {
   const [crews, setCrews] = useState<Crew[]>([]);
   const [loading, setLoading] = useState(false);
   const [showNewUserForm, setShowNewUserForm] = useState(false);
-  const [showEditUserModal, setShowEditUserModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [newUser, setNewUser] = useState({
     email: '',
     password: '',
@@ -131,31 +128,24 @@ export function Settings() {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newUser.email,
         password: newUser.password,
-        options: {
-          data: {
-            full_name: newUser.full_name,
-          }
-        }
       });
 
       if (authError) throw authError;
 
       if (authData.user) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
-        const { error: updateError } = await supabase
-          .from('user_profiles')
-          .update({
+        const { error: profileError } = await supabase.from('user_profiles').insert([
+          {
+            id: authData.user.id,
+            email: newUser.email,
+            full_name: newUser.full_name,
             role: newUser.role,
             phone: newUser.phone || null,
             assigned_crew_id: newUser.assigned_crew_id || null,
-            full_name: newUser.full_name,
-          })
-          .eq('id', authData.user.id);
+            is_active: true,
+          },
+        ]);
 
-        if (updateError) {
-          console.error('Error updating profile:', updateError);
-        }
+        if (profileError) throw profileError;
 
         await supabase.rpc('create_audit_log', {
           p_user_id: user?.id,
@@ -176,8 +166,8 @@ export function Settings() {
         });
 
         setShowNewUserForm(false);
-        await loadUsers();
-        alert('Usuario creado exitosamente. El perfil se creará automáticamente.');
+        loadUsers();
+        alert('Usuario creado exitosamente');
       }
     } catch (error: any) {
       console.error('Error creating user:', error);
@@ -209,17 +199,6 @@ export function Settings() {
     } catch (error) {
       console.error('Error toggling user status:', error);
     }
-  }
-
-  function handleEditUser(user: UserProfile) {
-    setSelectedUser(user);
-    setShowEditUserModal(true);
-  }
-
-  function handleEditUserSuccess() {
-    loadUsers();
-    setShowEditUserModal(false);
-    setSelectedUser(null);
   }
 
   const getRoleBadge = (role: string) => {
@@ -395,7 +374,6 @@ export function Settings() {
                         onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2"
                       >
-                        <option value="regular">Regular</option>
                         <option value="installer">Instalador</option>
                         <option value="supervisor">Supervisor</option>
                         <option value="admin">Administrador</option>
@@ -464,22 +442,13 @@ export function Settings() {
                         <p className="text-xs text-gray-500 mt-0.5">{u.phone}</p>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleEditUser(u)}
-                        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                        title="Editar usuario"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={() => toggleUserStatus(u.id, u.is_active)}
-                        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition"
-                        title={u.is_active ? 'Desactivar' : 'Activar'}
-                      >
-                        {u.is_active ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => toggleUserStatus(u.id, u.is_active)}
+                      className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition"
+                      title={u.is_active ? 'Desactivar' : 'Activar'}
+                    >
+                      {u.is_active ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
                   </div>
                 ))}
               </div>
@@ -487,19 +456,6 @@ export function Settings() {
           )}
         </div>
       </div>
-
-      {selectedUser && (
-        <EditUserModal
-          isOpen={showEditUserModal}
-          onClose={() => {
-            setShowEditUserModal(false);
-            setSelectedUser(null);
-          }}
-          onSuccess={handleEditUserSuccess}
-          user={selectedUser}
-          crews={crews}
-        />
-      )}
     </div>
   );
 }
