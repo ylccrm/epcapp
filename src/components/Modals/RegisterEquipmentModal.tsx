@@ -56,6 +56,21 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const sanitizeFileName = (fileName: string): string => {
+    const extension = fileName.substring(fileName.lastIndexOf('.'));
+    const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
+
+    const sanitized = nameWithoutExt
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+      .toLowerCase();
+
+    return sanitized + extension.toLowerCase();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -94,7 +109,8 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
       let invoiceUrl = null;
 
       if (manualFile) {
-        const manualFileName = `${projectId}/${Date.now()}-manual-${manualFile.name}`;
+        const sanitizedFileName = sanitizeFileName(manualFile.name);
+        const manualFileName = `${projectId}/${Date.now()}-manual-${sanitizedFileName}`;
         const { data: manualData, error: manualError } = await supabase.storage
           .from('equipment-docs')
           .upload(manualFileName, manualFile);
@@ -109,7 +125,8 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
       }
 
       if (invoiceFile) {
-        const invoiceFileName = `${projectId}/${Date.now()}-invoice-${invoiceFile.name}`;
+        const sanitizedFileName = sanitizeFileName(invoiceFile.name);
+        const invoiceFileName = `${projectId}/${Date.now()}-invoice-${sanitizedFileName}`;
         const { data: invoiceData, error: invoiceError } = await supabase.storage
           .from('equipment-docs')
           .upload(invoiceFileName, invoiceFile);
