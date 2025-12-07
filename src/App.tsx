@@ -7,14 +7,15 @@ import { Dashboard } from './components/Views/Dashboard';
 import { Projects } from './components/Views/Projects';
 import { Inventory } from './components/Views/Inventory';
 import { Suppliers } from './components/Views/Suppliers';
+import { Users } from './components/Views/Users';
 import { ProjectDetail } from './components/Views/ProjectDetail/ProjectDetail';
 import { CreateProjectModal } from './components/Modals/CreateProjectModal';
 import { AuthPage } from './components/Auth/AuthPage';
 
-type ViewType = 'dashboard' | 'projects' | 'inventory' | 'providers' | 'project-detail';
+type ViewType = 'dashboard' | 'projects' | 'inventory' | 'providers' | 'users' | 'project-detail';
 
 function AppContent() {
-  const { user, loading } = useAuth();
+  const { user, userProfile, loading } = useAuth();
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,6 +43,8 @@ function AppContent() {
         return 'Almacén Central';
       case 'providers':
         return 'Gestión de Proveedores';
+      case 'users':
+        return 'Gestión de Usuarios';
       case 'project-detail':
         return 'Gestión de Proyecto';
       default:
@@ -72,6 +75,7 @@ function AppContent() {
           onNavigate={handleNavigate}
           headerTitle={getHeaderTitle()}
           onNewProject={() => setIsModalOpen(true)}
+          userProfile={userProfile}
         >
           {currentView === 'dashboard' && (
             <Dashboard onNavigate={handleNavigate} key={`dashboard-${refreshTrigger}`} />
@@ -81,6 +85,7 @@ function AppContent() {
           )}
           {currentView === 'inventory' && <Inventory />}
           {currentView === 'providers' && <Suppliers />}
+          {currentView === 'users' && <Users />}
           {currentView === 'project-detail' && selectedProjectId && (
             <ProjectDetail projectId={selectedProjectId} onNavigate={handleNavigate} />
           )}
