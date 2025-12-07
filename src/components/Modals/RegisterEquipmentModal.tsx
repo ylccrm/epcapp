@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Upload } from 'lucide-react';
+import { X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface RegisterEquipmentModalProps {
@@ -17,14 +17,11 @@ interface Provider {
 export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }: RegisterEquipmentModalProps) {
   const [loading, setLoading] = useState(false);
   const [providers, setProviders] = useState<Provider[]>([]);
-  const [manualFile, setManualFile] = useState<File | null>(null);
-  const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     equipment_name: '',
     equipment_type: 'inverter',
     serial_number: '',
     supplier: '',
-    purchase_date: '',
     installation_date: '',
     warranty_years: '10',
     notes: '',
@@ -56,31 +53,11 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const sanitizeFileName = (fileName: string): string => {
-    const extension = fileName.substring(fileName.lastIndexOf('.'));
-    const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
-
-    const sanitized = nameWithoutExt
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-zA-Z0-9]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '')
-      .toLowerCase();
-
-    return sanitized + extension.toLowerCase();
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (formData.installation_date && formData.installation_date > new Date().toISOString().split('T')[0]) {
       alert('La fecha de instalación no puede ser futura');
-      return;
-    }
-
-    if (formData.purchase_date && formData.purchase_date > new Date().toISOString().split('T')[0]) {
-      alert('La fecha de compra no puede ser futura');
       return;
     }
 
@@ -105,41 +82,6 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
         return;
       }
 
-      let manualUrl = null;
-      let invoiceUrl = null;
-
-      if (manualFile) {
-        const sanitizedFileName = sanitizeFileName(manualFile.name);
-        const manualFileName = `${projectId}/${Date.now()}-manual-${sanitizedFileName}`;
-        const { data: manualData, error: manualError } = await supabase.storage
-          .from('equipment-docs')
-          .upload(manualFileName, manualFile);
-
-        if (manualError) throw manualError;
-
-        const { data: manualUrlData } = supabase.storage
-          .from('equipment-docs')
-          .getPublicUrl(manualData.path);
-
-        manualUrl = manualUrlData.publicUrl;
-      }
-
-      if (invoiceFile) {
-        const sanitizedFileName = sanitizeFileName(invoiceFile.name);
-        const invoiceFileName = `${projectId}/${Date.now()}-invoice-${sanitizedFileName}`;
-        const { data: invoiceData, error: invoiceError } = await supabase.storage
-          .from('equipment-docs')
-          .upload(invoiceFileName, invoiceFile);
-
-        if (invoiceError) throw invoiceError;
-
-        const { data: invoiceUrlData } = supabase.storage
-          .from('equipment-docs')
-          .getPublicUrl(invoiceData.path);
-
-        invoiceUrl = invoiceUrlData.publicUrl;
-      }
-
       const { error } = await supabase
         .from('project_equipment')
         .insert([
@@ -149,12 +91,9 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
             equipment_type: formData.equipment_type,
             serial_number: formData.serial_number,
             supplier: formData.supplier || null,
-            purchase_date: formData.purchase_date || null,
             installation_date: formData.installation_date || null,
             warranty_years: parseInt(formData.warranty_years),
             notes: formData.notes || null,
-            manual_url: manualUrl,
-            invoice_url: invoiceUrl,
           },
         ]);
 
@@ -165,13 +104,10 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
         equipment_type: 'inverter',
         serial_number: '',
         supplier: '',
-        purchase_date: '',
         installation_date: '',
         warranty_years: '10',
         notes: '',
       });
-      setManualFile(null);
-      setInvoiceFile(null);
 
       onSuccess();
       onClose();
@@ -194,10 +130,10 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
   return (
     <div
       onClick={handleBackdropClick}
-      className="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center fade-in p-4"
+      className="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center fade-in"
     >
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200 bg-slate-900 flex justify-between items-center shrink-0">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden m-4">
+        <div className="px-6 py-4 border-b border-gray-200 bg-slate-900 flex justify-between items-center">
           <h3 className="font-bold text-lg text-white">Registrar Equipo</h3>
           <button
             onClick={onClose}
@@ -208,8 +144,7 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-          <div className="p-6 space-y-3 overflow-y-auto flex-1">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Nombre del Equipo *
@@ -283,19 +218,6 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Fecha de Compra
-              </label>
-              <input
-                type="date"
-                name="purchase_date"
-                value={formData.purchase_date}
-                onChange={handleChange}
-                max={new Date().toISOString().split('T')[0]}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Fecha de Instalación
               </label>
               <input
@@ -307,22 +229,21 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none"
               />
             </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Garantía (años) *
-            </label>
-            <input
-              type="number"
-              name="warranty_years"
-              value={formData.warranty_years}
-              onChange={handleChange}
-              required
-              min="1"
-              max="30"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none"
-            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Garantía (años) *
+              </label>
+              <input
+                type="number"
+                name="warranty_years"
+                value={formData.warranty_years}
+                onChange={handleChange}
+                required
+                min="1"
+                max="30"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none"
+              />
+            </div>
           </div>
 
           <div>
@@ -339,60 +260,7 @@ export function RegisterEquipmentModal({ isOpen, onClose, projectId, onSuccess }
             />
           </div>
 
-          <div className="border-t border-gray-200 pt-3 space-y-3">
-            <h4 className="text-sm font-semibold text-gray-700">Documentos</h4>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Manual del Equipo
-              </label>
-              <div className="relative">
-                <input
-                  type="file"
-                  id="manual-file"
-                  onChange={(e) => setManualFile(e.target.files?.[0] || null)}
-                  accept=".pdf,.doc,.docx"
-                  className="hidden"
-                />
-                <label
-                  htmlFor="manual-file"
-                  className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-gray-300 rounded-lg px-4 py-2.5 cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition"
-                >
-                  <Upload size={16} className="text-gray-500" />
-                  <span className="text-sm text-gray-600">
-                    {manualFile ? manualFile.name : 'Subir manual (PDF, DOC)'}
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Factura de Compra
-              </label>
-              <div className="relative">
-                <input
-                  type="file"
-                  id="invoice-file"
-                  onChange={(e) => setInvoiceFile(e.target.files?.[0] || null)}
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  className="hidden"
-                />
-                <label
-                  htmlFor="invoice-file"
-                  className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-gray-300 rounded-lg px-4 py-2.5 cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition"
-                >
-                  <Upload size={16} className="text-gray-500" />
-                  <span className="text-sm text-gray-600">
-                    {invoiceFile ? invoiceFile.name : 'Subir factura (PDF, JPG, PNG)'}
-                  </span>
-                </label>
-              </div>
-            </div>
-          </div>
-          </div>
-
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 shrink-0">
+          <div className="pt-4 flex justify-end gap-3">
             <button
               type="button"
               onClick={onClose}

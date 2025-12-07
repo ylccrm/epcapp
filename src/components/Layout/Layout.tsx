@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 
@@ -11,29 +11,15 @@ interface LayoutProps {
 }
 
 export function Layout({ children, currentView, onNavigate, headerTitle, onNewProject }: LayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
   return (
     <div className="bg-gray-50 text-slate-800 antialiased h-screen flex overflow-hidden">
-      <Sidebar
-        currentView={currentView}
-        onNavigate={onNavigate}
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
+      <Sidebar currentView={currentView} onNavigate={onNavigate} />
 
       <main className="flex-1 flex flex-col bg-gray-50 overflow-hidden relative">
-        <Header
-          title={headerTitle}
-          onNewProject={onNewProject}
-          onNavigate={onNavigate}
-          onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
-        />
+        <Header title={headerTitle} onNewProject={onNewProject} onNavigate={onNavigate} />
 
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 relative">
-          <div className="max-w-[1600px] mx-auto">
-            {children}
-          </div>
+        <div className="flex-1 overflow-y-auto p-8 relative">
+          {children}
         </div>
       </main>
     </div>
