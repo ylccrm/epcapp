@@ -14,10 +14,7 @@ export function UploadDocumentModal({ isOpen, onClose, projectId, category, onSu
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-  });
+  const [fileName, setFileName] = useState('');
 
   const allowedTypes = [
     'application/pdf',
@@ -30,10 +27,6 @@ export function UploadDocumentModal({ isOpen, onClose, projectId, category, onSu
     'image/jpg',
   ];
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -73,8 +66,8 @@ export function UploadDocumentModal({ isOpen, onClose, projectId, category, onSu
     }
 
     setFile(selectedFile);
-    if (!formData.name) {
-      setFormData((prev) => ({ ...prev, name: selectedFile.name.split('.')[0] }));
+    if (!fileName) {
+      setFileName(selectedFile.name);
     }
   };
 
@@ -111,9 +104,8 @@ export function UploadDocumentModal({ isOpen, onClose, projectId, category, onSu
         .insert([
           {
             project_id: projectId,
-            doc_category: category,
-            doc_name: formData.name,
-            description: formData.description || null,
+            category: category,
+            file_name: fileName || file.name,
             file_url: urlData.publicUrl,
             file_size: file.size,
             file_type: file.type,
@@ -123,7 +115,7 @@ export function UploadDocumentModal({ isOpen, onClose, projectId, category, onSu
 
       if (dbError) throw dbError;
 
-      setFormData({ name: '', description: '' });
+      setFileName('');
       setFile(null);
 
       onSuccess();
@@ -223,26 +215,11 @@ export function UploadDocumentModal({ isOpen, onClose, projectId, category, onSu
             </label>
             <input
               type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
+              value={fileName}
+              onChange={(e) => setFileName(e.target.value)}
               required
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none"
               placeholder="Ej: Planos Estructurales Revisión 3"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Descripción (Opcional)
-            </label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows={3}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none"
-              placeholder="Descripción del documento..."
             />
           </div>
 

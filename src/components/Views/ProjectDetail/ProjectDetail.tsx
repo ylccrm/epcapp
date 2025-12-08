@@ -49,6 +49,24 @@ export function ProjectDetail({ projectId, onNavigate }: ProjectDetailProps) {
     }
   }
 
+  async function handleStatusChange(newStatus: string) {
+    if (!project) return;
+
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .update({ status: newStatus })
+        .eq('id', projectId);
+
+      if (error) throw error;
+
+      setProject({ ...project, status: newStatus });
+    } catch (error) {
+      console.error('Error updating project status:', error);
+      alert('Error al actualizar el estado del proyecto');
+    }
+  }
+
   const tabs = [
     { id: 'progress', label: 'Ejecución & Avance', icon: ListTodo },
     { id: 'payments', label: 'Pagos & Contratos', icon: DollarSign },
@@ -101,12 +119,20 @@ export function ProjectDetail({ projectId, onNavigate }: ProjectDetailProps) {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
         <div className="flex justify-between items-start">
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
-              {project.name}
-              <span className={`text-xs px-2 py-1 rounded-full border font-medium ${getStatusColor(project.status)}`}>
-                {getStatusLabel(project.status)}
-              </span>
-            </h1>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-2xl font-bold text-slate-800">
+                {project.name}
+              </h1>
+              <select
+                value={project.status}
+                onChange={(e) => handleStatusChange(e.target.value)}
+                className={`text-xs px-3 py-1.5 rounded-full border font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-yellow-500 ${getStatusColor(project.status)}`}
+              >
+                <option value="draft">Borrador</option>
+                <option value="execution">En Ejecución</option>
+                <option value="finished">Finalizado</option>
+              </select>
+            </div>
             <p className="text-sm text-gray-500 mt-1">
               Cliente: {project.client} | Ubicación: {project.location || 'Sin especificar'}
             </p>
