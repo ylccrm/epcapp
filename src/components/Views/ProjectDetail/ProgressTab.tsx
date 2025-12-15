@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react';
-import { FileText, Camera, Paperclip } from 'lucide-react';
+import { FileText, Camera, Paperclip, Image as ImageIcon, Video, Eye } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
-import { UploadEvidenceModal } from '../../Modals/UploadEvidenceModal';
+import { UploadMilestoneEvidenceModal } from '../../Modals/UploadMilestoneEvidenceModal';
 import type { Database } from '../../../lib/database.types';
 
 type Milestone = Database['public']['Tables']['project_milestones']['Row'];
+type Evidence = Database['public']['Tables']['milestone_evidence']['Row'];
+
+interface MilestoneWithEvidence extends Milestone {
+  evidence_count: number;
+}
 
 interface ProgressTabProps {
   projectId: string;
@@ -21,11 +26,13 @@ const STANDARD_MILESTONES = [
 ];
 
 export function ProgressTab({ projectId }: ProgressTabProps) {
-  const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [milestones, setMilestones] = useState<MilestoneWithEvidence[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalProgress, setTotalProgress] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(null);
+  const [selectedMilestone, setSelectedMilestone] = useState<MilestoneWithEvidence | null>(null);
+  const [evidenceByMilestone, setEvidenceByMilestone] = useState<Record<string, Evidence[]>>({});
+  const [showEvidenceFor, setShowEvidenceFor] = useState<string | null>(null);
 
   useEffect(() => {
     loadMilestones();
@@ -44,13 +51,54 @@ export function ProgressTab({ projectId }: ProgressTabProps) {
       if (!data || data.length === 0) {
         await initializeMilestones();
       } else {
-        setMilestones(data);
-        calculateTotalProgress(data);
+        await loadEvidenceCounts(data);
       }
     } catch (error) {
       console.error('Error loading milestones:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadEvidenceCounts(milestonesData: Milestone[]) {
+    try {
+      const milestonesWithCounts = await Promise.all(
+        milestonesData.map(async (milestone) => {
+          const { count } = await supabase
+            .from('milestone_evidence')
+            .select('*', { count: 'exact', head: true })
+            .eq('milestone_id', milestone.id);
+
+          return {
+            ...milestone,
+            evidence_count: count || 0,
+          };
+        })
+      );
+
+      setMilestones(milestonesWithCounts);
+      calculateTotalProgress(milestonesWithCounts);
+    } catch (error) {
+      console.error('Error loading evidence counts:', error);
+    }
+  }
+
+  async function loadMilestoneEvidence(milestoneId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('milestone_evidence')
+        .select('*')
+        .eq('milestone_id', milestoneId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setEvidenceByMilestone(prev => ({
+        ...prev,
+        [milestoneId]: data || [],
+      }));
+    } catch (error) {
+      console.error('Error loading evidence:', error);
     }
   }
 
@@ -70,10 +118,36 @@ export function ProgressTab({ projectId }: ProgressTabProps) {
         .select();
 
       if (error) throw error;
-      setMilestones(data || []);
-      calculateTotalProgress(data || []);
+
+      const milestonesWithCounts = (data || []).map(m => ({ ...m, evidence_count: 0 }));
+      setMilestones(milestonesWithCounts);
+      calculateTotalProgress(milestonesWithCounts);
     } catch (error) {
       console.error('Error initializing milestones:', error);
+    }
+  }
+
+  function toggleEvidenceView(milestoneId: string) {
+    if (showEvidenceFor === milestoneId) {
+      setShowEvidenceFor(null);
+    } else {
+      setShowEvidenceFor(milestoneId);
+      if (!evidenceByMilestone[milestoneId]) {
+        loadMilestoneEvidence(milestoneId);
+      }
+    }
+  }
+
+  function getEvidenceIcon(fileType: string) {
+    if (fileType === 'photo') return <ImageIcon size={14} />;
+    if (fileType === 'video') return <Video size={14} />;
+    return <FileText size={14} />;
+  }
+
+  function handleEvidenceUploadSuccess() {
+    loadMilestones();
+    if (selectedMilestone) {
+      loadMilestoneEvidence(selectedMilestone.id);
     }
   }
 
@@ -176,18 +250,29 @@ export function ProgressTab({ projectId }: ProgressTabProps) {
                     {milestone.progress_percentage}%
                   </span>
                 </div>
-                <div className="w-full md:w-auto text-right">
+                <div className="w-full md:w-auto flex gap-2">
                   {milestone.progress_percentage > 0 ? (
-                    <button
-                      onClick={() => {
-                        setSelectedMilestone(milestone);
-                        setIsModalOpen(true);
-                      }}
-                      className="text-xs bg-blue-50 border border-blue-100 text-blue-600 px-3 py-1.5 rounded flex items-center gap-1 hover:bg-blue-100 transition"
-                    >
-                      <Camera size={12} />
-                      Foto
-                    </button>
+                    <>
+                      <button
+                        onClick={() => {
+                          setSelectedMilestone(milestone);
+                          setIsModalOpen(true);
+                        }}
+                        className="text-xs bg-blue-50 border border-blue-100 text-blue-600 px-3 py-1.5 rounded flex items-center gap-1 hover:bg-blue-100 transition"
+                      >
+                        <Camera size={12} />
+                        Subir
+                      </button>
+                      {milestone.evidence_count > 0 && (
+                        <button
+                          onClick={() => toggleEvidenceView(milestone.id)}
+                          className="text-xs bg-green-50 border border-green-100 text-green-600 px-3 py-1.5 rounded flex items-center gap-1 hover:bg-green-100 transition"
+                        >
+                          <Eye size={12} />
+                          Ver ({milestone.evidence_count})
+                        </button>
+                      )}
+                    </>
                   ) : (
                     <button className="text-xs bg-gray-100 text-gray-400 px-3 py-1.5 rounded cursor-not-allowed">
                       Pendiente
@@ -195,13 +280,63 @@ export function ProgressTab({ projectId }: ProgressTabProps) {
                   )}
                 </div>
               </div>
+
+              {showEvidenceFor === milestone.id && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <h5 className="text-xs font-semibold text-gray-600 uppercase mb-3">
+                    Evidencias Adjuntas
+                  </h5>
+                  {evidenceByMilestone[milestone.id] ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {evidenceByMilestone[milestone.id].map((evidence) => (
+                        <div
+                          key={evidence.id}
+                          className="border border-gray-200 rounded-lg p-3 hover:shadow-md transition"
+                        >
+                          <div className="flex items-start gap-2 mb-2">
+                            <div className="text-blue-600">
+                              {getEvidenceIcon(evidence.file_type)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium text-slate-800 truncate">
+                                {evidence.file_name}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {new Date(evidence.created_at).toLocaleDateString('es-ES')}
+                              </p>
+                            </div>
+                          </div>
+                          {evidence.description && (
+                            <p className="text-xs text-gray-600 mb-2">
+                              {evidence.description}
+                            </p>
+                          )}
+                          <a
+                            href={evidence.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                          >
+                            <Eye size={12} />
+                            Ver archivo
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 text-gray-400 text-sm">
+                      Cargando evidencias...
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
       </div>
 
       {selectedMilestone && (
-        <UploadEvidenceModal
+        <UploadMilestoneEvidenceModal
           isOpen={isModalOpen}
           onClose={() => {
             setIsModalOpen(false);
@@ -209,10 +344,7 @@ export function ProgressTab({ projectId }: ProgressTabProps) {
           }}
           milestoneId={selectedMilestone.id}
           milestoneName={selectedMilestone.name}
-          onSuccess={() => {
-            setIsModalOpen(false);
-            setSelectedMilestone(null);
-          }}
+          onSuccess={handleEvidenceUploadSuccess}
         />
       )}
     </div>

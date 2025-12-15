@@ -25,16 +25,50 @@ export function AddContractModal({ isOpen, onClose, projectId, onSuccess }: AddC
   const [serviceType, setServiceType] = useState('Instalación Eléctrica');
   const [totalValue, setTotalValue] = useState('');
   const [contractFile, setContractFile] = useState<File | null>(null);
+  const [suppliers, setSuppliers] = useState<string[]>([]);
+  const [filteredSuppliers, setFilteredSuppliers] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [milestones, setMilestones] = useState<PaymentMilestone[]>([
     { milestone_name: 'Anticipo', percentage: 30, amount_usd: 0, status: 'pending', order_index: 1 },
     { milestone_name: 'Entrega Final', percentage: 70, amount_usd: 0, status: 'pending', order_index: 2 },
   ]);
 
   useEffect(() => {
+    loadSuppliers();
+  }, []);
+
+  useEffect(() => {
     if (totalValue) {
       calculateMilestoneAmounts(parseFloat(totalValue));
     }
   }, [totalValue, currency]);
+
+  useEffect(() => {
+    if (subcontractor && subcontractor.length > 0) {
+      const filtered = suppliers.filter(s =>
+        s.toLowerCase().includes(subcontractor.toLowerCase())
+      );
+      setFilteredSuppliers(filtered);
+    } else {
+      setFilteredSuppliers(suppliers);
+    }
+  }, [subcontractor, suppliers]);
+
+  async function loadSuppliers() {
+    try {
+      const { data, error } = await supabase
+        .from('suppliers')
+        .select('name')
+        .eq('status', 'active')
+        .order('name');
+
+      if (error) throw error;
+      setSuppliers(data?.map(s => s.name) || []);
+      setFilteredSuppliers(data?.map(s => s.name) || []);
+    } catch (error) {
+      console.error('Error loading suppliers:', error);
+    }
+  }
 
   const calculateMilestoneAmounts = (total: number) => {
     let totalInUSD = total;
@@ -235,24 +269,40 @@ export function AddContractModal({ isOpen, onClose, projectId, onSuccess }: AddC
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
           <div className="p-6 space-y-6">
             <div className="grid grid-cols-2 gap-6">
-              <div>
+              <div className="relative">
                 <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
                   Subcontratista / Proveedor
                 </label>
-                <select
+                <input
+                  type="text"
                   value={subcontractor}
-                  onChange={(e) => setSubcontractor(e.target.value)}
+                  onChange={(e) => {
+                    setSubcontractor(e.target.value);
+                    setShowSuggestions(true);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                   required
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-yellow-500 focus:outline-none bg-white"
-                >
-                  <option value="">Seleccionar...</option>
-                  <option>Montajes Eléctricos del Norte</option>
-                  <option>Seguridad Alturas Ltda</option>
-                  <option>Ingeniería & Diseños S.A.S</option>
-                  <option>Logística Rápida</option>
-                  <option>Estructuras Metálicas</option>
-                  <option>Cable & Energía S.A.S</option>
-                </select>
+                  placeholder="Escribe para buscar o ingresar nuevo..."
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-yellow-500 focus:outline-none"
+                />
+                {showSuggestions && filteredSuppliers.length > 0 && subcontractor && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                    {filteredSuppliers.map((supplier, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => {
+                          setSubcontractor(supplier);
+                          setShowSuggestions(false);
+                        }}
+                        className="w-full text-left px-3 py-2 hover:bg-blue-50 text-sm border-b border-gray-100 last:border-b-0"
+                      >
+                        {supplier}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">

@@ -50,27 +50,50 @@ export function MaterialsTab({ projectId }: MaterialsTabProps) {
   };
 
   async function handleMarkAsReceived(orderId: string) {
-    if (!confirm('¿Marcar esta orden como recibida?')) {
+    if (!confirm('¿Marcar esta orden como recibida y crear equipo?')) {
       return;
     }
 
     try {
-      const receivedDate = new Date().toISOString();
+      const receivedDate = new Date().toISOString().split('T')[0];
 
-      const { error } = await supabase
+      const order = orders.find(o => o.id === orderId);
+      if (!order) {
+        throw new Error('Orden no encontrada');
+      }
+
+      const { error: orderError } = await supabase
         .from('purchase_orders')
         .update({
           status: 'received',
+          received: true,
           received_date: receivedDate,
         })
         .eq('id', orderId);
 
-      if (error) throw error;
+      if (orderError) throw orderError;
+
+      const { error: equipmentError } = await supabase
+        .from('project_equipment')
+        .insert({
+          project_id: projectId,
+          equipment_name: order.items_description || 'Equipo sin nombre',
+          equipment_type: 'other',
+          supplier: order.provider_name,
+          purchase_date: order.order_date || receivedDate,
+          status: 'new',
+          purchase_order_id: orderId,
+          quantity: 1,
+          notes: order.notes || null,
+        });
+
+      if (equipmentError) throw equipmentError;
 
       await loadOrders();
+      alert('Orden marcada como recibida y equipo creado exitosamente');
     } catch (error) {
       console.error('Error marking order as received:', error);
-      alert('Error al marcar la orden como recibida. Por favor intente de nuevo.');
+      alert('Error al procesar la orden. Por favor intente de nuevo.');
     }
   }
 

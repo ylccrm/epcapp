@@ -64,6 +64,28 @@ export function EquipmentTab({ projectId }: EquipmentTabProps) {
     return icons[type || 'other'] || '⚙️';
   };
 
+  const getStatusBadge = (status: string | null) => {
+    if (!status) return 'bg-gray-100 text-gray-800';
+    const badges: Record<string, string> = {
+      new: 'bg-blue-100 text-blue-800',
+      installed: 'bg-green-100 text-green-800',
+      maintenance: 'bg-yellow-100 text-yellow-800',
+      retired: 'bg-red-100 text-red-800',
+    };
+    return badges[status] || 'bg-gray-100 text-gray-800';
+  };
+
+  const getStatusLabel = (status: string | null) => {
+    if (!status) return 'Sin estado';
+    const labels: Record<string, string> = {
+      new: 'Nuevo',
+      installed: 'Instalado',
+      maintenance: 'Mantenimiento',
+      retired: 'Retirado',
+    };
+    return labels[status] || 'Sin estado';
+  };
+
   return (
     <div>
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
@@ -94,6 +116,7 @@ export function EquipmentTab({ projectId }: EquipmentTabProps) {
                   <th className="pb-2">Proveedor</th>
                   <th className="pb-2">Fecha Instalación</th>
                   <th className="pb-2 text-center">Garantía</th>
+                  <th className="pb-2 text-center">Estado</th>
                   <th className="pb-2 text-center">Acciones</th>
                 </tr>
               </thead>
@@ -134,6 +157,11 @@ export function EquipmentTab({ projectId }: EquipmentTabProps) {
                       ) : (
                         <span className="text-gray-400 text-xs">-</span>
                       )}
+                    </td>
+                    <td className="py-3 text-center">
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusBadge(item.status)}`}>
+                        {getStatusLabel(item.status)}
+                      </span>
                     </td>
                     <td className="py-3 text-center">
                       <button
