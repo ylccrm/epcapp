@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Search, Plus, MapPin, MoreHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { CreateProjectModal } from '../Modals/CreateProjectModal';
 import type { Database } from '../../lib/database.types';
 
 type Project = Database['public']['Tables']['projects']['Row'] & {
@@ -20,6 +21,7 @@ export function Projects({ onNavigate }: ProjectsProps) {
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   useEffect(() => {
     loadProjects();
@@ -42,11 +44,19 @@ export function Projects({ onNavigate }: ProjectsProps) {
 
       setProjects(data || []);
 
-      const { count } = await supabase
+      let countQuery = supabase
         .from('projects')
-        .select('*', { count: 'exact', head: true })
-        .ilike('name', `%${searchTerm}%`)
-        .eq(statusFilter !== 'all' ? 'status' : 'id', statusFilter !== 'all' ? statusFilter : projects[0]?.id || '');
+        .select('*', { count: 'exact', head: true });
+
+      if (searchTerm) {
+        countQuery = countQuery.ilike('name', `%${searchTerm}%`);
+      }
+
+      if (statusFilter !== 'all') {
+        countQuery = countQuery.eq('status', statusFilter);
+      }
+
+      const { count } = await countQuery;
 
       setTotalCount(count || 0);
     } catch (error) {
@@ -105,7 +115,10 @@ export function Projects({ onNavigate }: ProjectsProps) {
             <option value="finished">Finalizados</option>
           </select>
         </div>
-        <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md transition flex items-center gap-2">
+        <button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md transition flex items-center gap-2"
+        >
           <Plus size={16} />
           Crear Proyecto
         </button>
@@ -188,6 +201,12 @@ export function Projects({ onNavigate }: ProjectsProps) {
           )}
         </>
       )}
+
+      <CreateProjectModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={loadProjects}
+      />
     </div>
   );
 }

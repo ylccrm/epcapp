@@ -1,15 +1,14 @@
-import { Plus, LogOut, User } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
 import { useCurrency } from '../../contexts/CurrencyContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { NotificationDropdown } from '../Notifications/NotificationDropdown';
 
 interface HeaderProps {
   title: string;
-  onNewProject?: () => void;
   onNavigate?: (view: string, projectId?: string) => void;
 }
 
-export function Header({ title, onNewProject, onNavigate }: HeaderProps) {
+export function Header({ title, onNavigate }: HeaderProps) {
   const { currency, setCurrency } = useCurrency();
   const { user, signOut } = useAuth();
 
@@ -50,18 +49,6 @@ export function Header({ title, onNewProject, onNavigate }: HeaderProps) {
         </div>
 
         <NotificationDropdown onNavigate={onNavigate} />
-
-        <div className="h-8 w-px bg-gray-200 mx-2"></div>
-
-        {onNewProject && (
-          <button
-            onClick={onNewProject}
-            className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-lg shadow-slate-900/20 flex items-center"
-          >
-            <Plus size={16} className="mr-2" />
-            Nuevo Proyecto
-          </button>
-        )}
 
         <div className="h-8 w-px bg-gray-200 mx-2"></div>
 

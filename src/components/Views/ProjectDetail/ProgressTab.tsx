@@ -296,8 +296,8 @@ export function ProgressTab({ projectId }: ProgressTabProps) {
                     Evidencias Adjuntas ({evidenceByMilestone[milestone.id]?.length || 0})
                   </h5>
                   {evidenceByMilestone[milestone.id] ? (
-                    <div className="relative">
-                      <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-blue-200"></div>
+                    <div className="relative pt-2">
+                      <div className="absolute left-6 top-2 bottom-0 w-0.5 bg-blue-200"></div>
 
                       <div className="space-y-4">
                         {evidenceByMilestone[milestone.id].map((evidence, index) => {
