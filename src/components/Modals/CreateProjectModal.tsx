@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useCurrency } from '../../contexts/CurrencyContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface CreateProjectModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface CreateProjectModalProps {
 
 export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProjectModalProps) {
   const { currency, exchangeRate } = useCurrency();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -78,6 +80,10 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
 
       const projectName = `${formData.name} - ${formData.capacity}${formData.capacityUnit}`;
 
+      if (!user?.id) {
+        throw new Error('Usuario no autenticado');
+      }
+
       const { data, error } = await supabase
         .from('projects')
         .insert([
@@ -91,6 +97,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
             currency: formData.projectCurrency,
             currency_country: formData.currencyCountry,
             exchange_rate: projectExchangeRate,
+            created_by: user.id,
           },
         ])
         .select()
