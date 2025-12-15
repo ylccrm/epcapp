@@ -7,7 +7,6 @@ type Supplier = Database['public']['Tables']['suppliers']['Row'];
 
 export function Suppliers() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [filteredSuppliers, setFilteredSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
@@ -15,26 +14,59 @@ export function Suppliers() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [categories, setCategories] = useState<string[]>([]);
   const itemsPerPage = 10;
 
   useEffect(() => {
     loadSuppliers();
-  }, []);
+  }, [currentPage, searchTerm, filterCategory, filterStatus]);
 
   useEffect(() => {
-    filterSuppliers();
-  }, [searchTerm, filterCategory, filterStatus, suppliers]);
+    loadCategories();
+  }, []);
+
+  async function loadCategories() {
+    try {
+      const { data, error } = await supabase
+        .from('suppliers')
+        .select('category');
+
+      if (error) throw error;
+      const uniqueCategories = Array.from(new Set(data?.map((s) => s.category) || []));
+      setCategories(uniqueCategories);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  }
 
   async function loadSuppliers() {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+
+      let query = supabase
         .from('suppliers')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
+
+      if (searchTerm) {
+        query = query.or(`name.ilike.%${searchTerm}%,contact_person.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`);
+      }
+
+      if (filterCategory !== 'all') {
+        query = query.eq('category', filterCategory);
+      }
+
+      if (filterStatus !== 'all') {
+        query = query.eq('status', filterStatus);
+      }
+
+      const { data, error, count } = await query;
 
       if (error) throw error;
       setSuppliers(data || []);
+      setTotalCount(count || 0);
     } catch (error) {
       console.error('Error loading suppliers:', error);
     } finally {
@@ -42,38 +74,7 @@ export function Suppliers() {
     }
   }
 
-  function filterSuppliers() {
-    let filtered = [...suppliers];
-
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (s) =>
-          s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          s.contact_person?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          s.email?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (filterCategory !== 'all') {
-      filtered = filtered.filter((s) => s.category === filterCategory);
-    }
-
-    if (filterStatus !== 'all') {
-      filtered = filtered.filter((s) => s.status === filterStatus);
-    }
-
-    setFilteredSuppliers(filtered);
-    setCurrentPage(1);
-  }
-
-  const categories = Array.from(new Set(suppliers.map((s) => s.category)));
-
-  const paginatedSuppliers = filteredSuppliers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const totalPages = Math.ceil(filteredSuppliers.length / itemsPerPage);
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   const handleEdit = (supplier: Supplier) => {
     setEditingSupplier(supplier);
@@ -120,7 +121,7 @@ export function Suppliers() {
         <div>
           <h2 className="text-2xl font-bold text-slate-800">Gestión de Proveedores</h2>
           <p className="text-sm text-gray-500 mt-1">
-            {filteredSuppliers.length} proveedor{filteredSuppliers.length !== 1 ? 'es' : ''} encontrado{filteredSuppliers.length !== 1 ? 's' : ''}
+            {totalCount} proveedor{totalCount !== 1 ? 'es' : ''} encontrado{totalCount !== 1 ? 's' : ''}
           </p>
         </div>
         <button
@@ -144,7 +145,10 @@ export function Suppliers() {
                 type="text"
                 placeholder="Buscar por nombre, contacto o email..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:outline-none"
               />
             </div>
@@ -153,7 +157,10 @@ export function Suppliers() {
           <div>
             <select
               value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
+              onChange={(e) => {
+                setFilterCategory(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:outline-none bg-white"
             >
               <option value="all">Todas las Categorías</option>
@@ -168,7 +175,10 @@ export function Suppliers() {
           <div>
             <select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
+              onChange={(e) => {
+                setFilterStatus(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:outline-none bg-white"
             >
               <option value="all">Todos los Estados</option>
@@ -179,7 +189,7 @@ export function Suppliers() {
         </div>
       </div>
 
-      {filteredSuppliers.length === 0 ? (
+      {suppliers.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
           <Filter size={48} className="mx-auto text-gray-300 mb-4" />
           <p className="text-gray-500 font-medium mb-2">No se encontraron proveedores</p>
@@ -192,7 +202,7 @@ export function Suppliers() {
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {paginatedSuppliers.map((supplier) => (
+            {suppliers.map((supplier) => (
               <div
                 key={supplier.id}
                 className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition overflow-hidden"

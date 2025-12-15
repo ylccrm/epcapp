@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Users as UsersIcon, Search, Edit2, Shield, UserCog } from 'lucide-react';
+import { Users as UsersIcon, Search, Edit2, Shield, UserCog, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { EditUserModal } from '../Modals/EditUserModal';
@@ -7,59 +7,53 @@ import type { Database } from '../../lib/database.types';
 
 type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
 
+const PAGE_SIZE = 15;
+
 export function Users() {
   const { userProfile } = useAuth();
   const [users, setUsers] = useState<UserProfile[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
     if (userProfile?.role === 'admin') {
       loadUsers();
     }
-  }, [userProfile]);
-
-  useEffect(() => {
-    filterUsers();
-  }, [users, searchTerm, roleFilter]);
+  }, [userProfile, currentPage, searchTerm, roleFilter]);
 
   async function loadUsers() {
     try {
-      const { data, error } = await supabase
+      setLoading(true);
+
+      let query = supabase
         .from('user_profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE - 1);
+
+      if (searchTerm) {
+        query = query.or(`full_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`);
+      }
+
+      if (roleFilter !== 'all') {
+        query = query.eq('role', roleFilter);
+      }
+
+      const { data, error, count } = await query;
 
       if (error) throw error;
       setUsers(data || []);
+      setTotalCount(count || 0);
     } catch (error) {
       console.error('Error loading users:', error);
     } finally {
       setLoading(false);
     }
-  }
-
-  function filterUsers() {
-    let filtered = [...users];
-
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (user) =>
-          user.full_name?.toLowerCase().includes(term) ||
-          user.email?.toLowerCase().includes(term)
-      );
-    }
-
-    if (roleFilter !== 'all') {
-      filtered = filtered.filter((user) => user.role === roleFilter);
-    }
-
-    setFilteredUsers(filtered);
   }
 
   function handleEditUser(user: UserProfile) {
@@ -122,14 +116,20 @@ export function Users() {
             <input
               type="text"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
               placeholder="Buscar por nombre o email..."
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
           <select
             value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
+            onChange={(e) => {
+              setRoleFilter(e.target.value);
+              setCurrentPage(1);
+            }}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
           >
             <option value="all">Todos los roles</option>
@@ -186,7 +186,7 @@ export function Users() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredUsers.map((user) => (
+                {users.map((user) => (
                   <tr key={user.id} className="hover:bg-gray-50 transition">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -236,10 +236,32 @@ export function Users() {
               </tbody>
             </table>
 
-            {filteredUsers.length === 0 && (
+            {users.length === 0 && (
               <div className="text-center py-12">
                 <UsersIcon size={48} className="mx-auto text-gray-300 mb-3" />
                 <p className="text-gray-500">No se encontraron usuarios</p>
+              </div>
+            )}
+
+            {Math.ceil(totalCount / PAGE_SIZE) > 1 && (
+              <div className="mt-4 flex items-center justify-center gap-2 pb-4">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span className="text-sm text-gray-600">
+                  Página {currentPage} de {Math.ceil(totalCount / PAGE_SIZE)}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(Math.ceil(totalCount / PAGE_SIZE), prev + 1))}
+                  disabled={currentPage === Math.ceil(totalCount / PAGE_SIZE)}
+                  className="p-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition"
+                >
+                  <ChevronRight size={16} />
+                </button>
               </div>
             )}
           </div>

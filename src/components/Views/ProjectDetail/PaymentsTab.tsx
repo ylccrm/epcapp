@@ -35,49 +35,25 @@ export function PaymentsTab({ projectId }: PaymentsTabProps) {
     try {
       setLoading(true);
 
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout')), 10000)
-      );
+      const { data, error } = await supabase
+        .from('contracts')
+        .select(`
+          *,
+          milestones:contract_payment_milestones(*)
+        `)
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false });
 
-      const fetchPromise = (async () => {
-        const { data: contractsData, error: contractsError } = await supabase
-          .from('contracts')
-          .select('*')
-          .eq('project_id', projectId)
-          .order('created_at', { ascending: false });
+      if (error) throw error;
 
-        if (contractsError) throw contractsError;
+      const contractsWithSortedMilestones = (data || []).map(contract => ({
+        ...contract,
+        milestones: (contract.milestones || []).sort((a, b) => a.order_index - b.order_index)
+      }));
 
-        if (contractsData && contractsData.length > 0) {
-          const contractsWithMilestones = await Promise.all(
-            contractsData.map(async (contract) => {
-              const { data: milestones, error: milestonesError } = await supabase
-                .from('contract_payment_milestones')
-                .select('*')
-                .eq('contract_id', contract.id)
-                .order('order_index', { ascending: true });
-
-              if (milestonesError) throw milestonesError;
-
-              return {
-                ...contract,
-                milestones: milestones || [],
-              };
-            })
-          );
-
-          setContracts(contractsWithMilestones);
-        } else {
-          setContracts([]);
-        }
-      })();
-
-      await Promise.race([fetchPromise, timeoutPromise]);
+      setContracts(contractsWithSortedMilestones as ContractWithMilestones[]);
     } catch (error: any) {
       console.error('Error loading contracts:', error);
-      if (error.message === 'Timeout') {
-        alert('La carga de contratos está tardando demasiado. Por favor, intenta de nuevo.');
-      }
       setContracts([]);
     } finally {
       setLoading(false);
