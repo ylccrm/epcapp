@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
-import { useCurrency } from '../../../contexts/CurrencyContext';
+import { useProjectCurrency } from '../../../hooks/useProjectCurrency';
 import { NewPurchaseOrderModal } from '../../Modals/NewPurchaseOrderModal';
 import type { Database } from '../../../lib/database.types';
 
@@ -12,7 +12,7 @@ interface MaterialsTabProps {
 }
 
 export function MaterialsTab({ projectId }: MaterialsTabProps) {
-  const { formatAmount } = useCurrency();
+  const { formatAmount } = useProjectCurrency(projectId);
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);

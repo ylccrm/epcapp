@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Upload } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { useCurrency } from '../../contexts/CurrencyContext';
+import { useProjectCurrency } from '../../hooks/useProjectCurrency';
 
 interface NewPurchaseOrderModalProps {
   isOpen: boolean;
@@ -10,15 +10,12 @@ interface NewPurchaseOrderModalProps {
   onSuccess: () => void;
 }
 
-interface Provider {
-  id: string;
-  name: string;
-}
-
 export function NewPurchaseOrderModal({ isOpen, onClose, projectId, onSuccess }: NewPurchaseOrderModalProps) {
-  const { currency, exchangeRate } = useCurrency();
+  const { currency, convertToUSD, getCurrencySymbol } = useProjectCurrency(projectId);
   const [loading, setLoading] = useState(false);
-  const [providers, setProviders] = useState<Provider[]>([]);
+  const [suppliers, setSuppliers] = useState<string[]>([]);
+  const [filteredSuppliers, setFilteredSuppliers] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     providerName: '',
@@ -32,22 +29,34 @@ export function NewPurchaseOrderModal({ isOpen, onClose, projectId, onSuccess }:
 
   useEffect(() => {
     if (isOpen) {
-      loadProviders();
+      loadSuppliers();
     }
   }, [isOpen]);
 
-  async function loadProviders() {
+  useEffect(() => {
+    if (formData.providerName && formData.providerName.length > 0) {
+      const filtered = suppliers.filter(s =>
+        s.toLowerCase().includes(formData.providerName.toLowerCase())
+      );
+      setFilteredSuppliers(filtered);
+    } else {
+      setFilteredSuppliers(suppliers);
+    }
+  }, [formData.providerName, suppliers]);
+
+  async function loadSuppliers() {
     try {
       const { data, error } = await supabase
-        .from('providers')
-        .select('id, name')
+        .from('suppliers')
+        .select('name')
         .eq('status', 'active')
         .order('name');
 
       if (error) throw error;
-      setProviders(data || []);
+      setSuppliers(data?.map(s => s.name) || []);
+      setFilteredSuppliers(data?.map(s => s.name) || []);
     } catch (error) {
-      console.error('Error loading providers:', error);
+      console.error('Error loading suppliers:', error);
     }
   }
 
@@ -87,10 +96,7 @@ export function NewPurchaseOrderModal({ isOpen, onClose, projectId, onSuccess }:
     setLoading(true);
 
     try {
-      let totalInUSD = parseFloat(formData.totalAmount);
-      if (currency === 'COP') {
-        totalInUSD = totalInUSD / exchangeRate;
-      }
+      const totalInUSD = convertToUSD(parseFloat(formData.totalAmount));
 
       let pdfUrl = null;
 
@@ -183,24 +189,41 @@ export function NewPurchaseOrderModal({ isOpen, onClose, projectId, onSuccess }:
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
           <div className="p-6 space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div>
+              <div className="relative">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Proveedor *
                 </label>
-                <select
+                <input
+                  type="text"
                   name="providerName"
                   value={formData.providerName}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    handleChange(e);
+                    setShowSuggestions(true);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                   required
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none bg-white"
-                >
-                  <option value="">Seleccionar proveedor...</option>
-                  {providers.map((provider) => (
-                    <option key={provider.id} value={provider.name}>
-                      {provider.name}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Escribe para buscar o ingresar nuevo..."
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none"
+                />
+                {showSuggestions && filteredSuppliers.length > 0 && formData.providerName && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                    {filteredSuppliers.map((supplier, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => {
+                          setFormData((prev) => ({ ...prev, providerName: supplier }));
+                          setShowSuggestions(false);
+                        }}
+                        className="w-full text-left px-3 py-2 hover:bg-blue-50 text-sm border-b border-gray-100 last:border-b-0"
+                      >
+                        {supplier}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">

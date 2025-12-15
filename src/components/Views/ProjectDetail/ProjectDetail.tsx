@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowLeft, ListTodo, DollarSign, Package, Server, Users, FolderOpen, Share2 } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
-import { useCurrency } from '../../../contexts/CurrencyContext';
+import { useProjectCurrency } from '../../../hooks/useProjectCurrency';
 import { useAuth } from '../../../contexts/AuthContext';
 import type { Database } from '../../../lib/database.types';
 import { ProgressTab } from './ProgressTab';
@@ -21,7 +21,7 @@ interface ProjectDetailProps {
 }
 
 export function ProjectDetail({ projectId, onNavigate }: ProjectDetailProps) {
-  const { formatAmount } = useCurrency();
+  const { formatAmount } = useProjectCurrency(projectId);
   const { userProfile } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);

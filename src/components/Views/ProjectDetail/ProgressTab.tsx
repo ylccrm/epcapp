@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { FileText, Camera, Paperclip, Image as ImageIcon, Video, Eye } from 'lucide-react';
+import { FileText, Camera, Paperclip, Image as ImageIcon, Video, Eye, Plus } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { UploadMilestoneEvidenceModal } from '../../Modals/UploadMilestoneEvidenceModal';
+import { CreateMilestoneModal } from '../../Modals/CreateMilestoneModal';
 import type { Database } from '../../../lib/database.types';
 
 type Milestone = Database['public']['Tables']['project_milestones']['Row'];
@@ -33,6 +34,7 @@ export function ProgressTab({ projectId }: ProgressTabProps) {
   const [selectedMilestone, setSelectedMilestone] = useState<MilestoneWithEvidence | null>(null);
   const [evidenceByMilestone, setEvidenceByMilestone] = useState<Record<string, Evidence[]>>({});
   const [showEvidenceFor, setShowEvidenceFor] = useState<string | null>(null);
+  const [isCreateMilestoneModalOpen, setIsCreateMilestoneModalOpen] = useState(false);
 
   useEffect(() => {
     loadMilestones();
@@ -222,6 +224,13 @@ export function ProgressTab({ projectId }: ProgressTabProps) {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
           <h3 className="font-bold text-slate-700">Control de Hitos de Obra</h3>
+          <button
+            onClick={() => setIsCreateMilestoneModalOpen(true)}
+            className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm font-medium"
+          >
+            <Plus size={16} />
+            Nuevo Hito
+          </button>
         </div>
         <div className="divide-y divide-gray-100">
           {milestones.map((milestone) => (
@@ -282,49 +291,98 @@ export function ProgressTab({ projectId }: ProgressTabProps) {
               </div>
 
               {showEvidenceFor === milestone.id && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <h5 className="text-xs font-semibold text-gray-600 uppercase mb-3">
-                    Evidencias Adjuntas
+                <div className="mt-4 pt-4 border-t border-gray-200 bg-gray-50 -mx-4 px-4 pb-4">
+                  <h5 className="text-xs font-semibold text-gray-600 uppercase mb-4 pt-2">
+                    Evidencias Adjuntas ({evidenceByMilestone[milestone.id]?.length || 0})
                   </h5>
                   {evidenceByMilestone[milestone.id] ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {evidenceByMilestone[milestone.id].map((evidence) => (
-                        <div
-                          key={evidence.id}
-                          className="border border-gray-200 rounded-lg p-3 hover:shadow-md transition"
-                        >
-                          <div className="flex items-start gap-2 mb-2">
-                            <div className="text-blue-600">
-                              {getEvidenceIcon(evidence.file_type)}
+                    <div className="relative">
+                      <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-blue-200"></div>
+
+                      <div className="space-y-4">
+                        {evidenceByMilestone[milestone.id].map((evidence, index) => {
+                          const date = new Date(evidence.created_at);
+                          const showDateHeader = index === 0 ||
+                            new Date(evidenceByMilestone[milestone.id][index - 1].created_at).toDateString() !== date.toDateString();
+
+                          return (
+                            <div key={evidence.id}>
+                              {showDateHeader && (
+                                <div className="flex items-center gap-2 mb-3">
+                                  <div className="text-xs font-semibold text-gray-700 bg-white px-3 py-1 rounded-full border border-gray-300">
+                                    {date.toLocaleDateString('es-ES', {
+                                      weekday: 'short',
+                                      year: 'numeric',
+                                      month: 'short',
+                                      day: 'numeric'
+                                    })}
+                                  </div>
+                                  <div className="flex-1 h-px bg-gray-300"></div>
+                                </div>
+                              )}
+
+                              <div className="flex gap-3 relative">
+                                <div className="relative z-10 flex-shrink-0 w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white shadow-md">
+                                  {getEvidenceIcon(evidence.file_type)}
+                                </div>
+
+                                <div className="flex-1 bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition">
+                                  <div className="flex items-start justify-between gap-3 mb-2">
+                                    <div className="flex-1">
+                                      <p className="text-sm font-semibold text-slate-800 mb-1">
+                                        {evidence.file_name}
+                                      </p>
+                                      <p className="text-xs text-gray-500">
+                                        {date.toLocaleTimeString('es-ES', {
+                                          hour: '2-digit',
+                                          minute: '2-digit'
+                                        })}
+                                      </p>
+                                    </div>
+                                    <span className={`text-xs px-2 py-1 rounded font-medium ${
+                                      evidence.file_type === 'image' ? 'bg-green-100 text-green-700' :
+                                      evidence.file_type === 'video' ? 'bg-purple-100 text-purple-700' :
+                                      evidence.file_type === 'pdf' ? 'bg-red-100 text-red-700' :
+                                      'bg-gray-100 text-gray-700'
+                                    }`}>
+                                      {evidence.file_type?.toUpperCase() || 'FILE'}
+                                    </span>
+                                  </div>
+
+                                  {evidence.description && (
+                                    <p className="text-sm text-gray-700 mb-3 border-l-2 border-blue-200 pl-3">
+                                      {evidence.description}
+                                    </p>
+                                  )}
+
+                                  <div className="flex gap-2">
+                                    <a
+                                      href={evidence.file_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-xs text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded font-medium flex items-center gap-2 transition shadow-sm"
+                                    >
+                                      <Eye size={14} />
+                                      Ver Archivo
+                                    </a>
+                                    <a
+                                      href={evidence.file_url}
+                                      download
+                                      className="text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded font-medium flex items-center gap-2 transition border border-blue-200"
+                                    >
+                                      <FileText size={14} />
+                                      Descargar
+                                    </a>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-medium text-slate-800 truncate">
-                                {evidence.file_name}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {new Date(evidence.created_at).toLocaleDateString('es-ES')}
-                              </p>
-                            </div>
-                          </div>
-                          {evidence.description && (
-                            <p className="text-xs text-gray-600 mb-2">
-                              {evidence.description}
-                            </p>
-                          )}
-                          <a
-                            href={evidence.file_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
-                          >
-                            <Eye size={12} />
-                            Ver archivo
-                          </a>
-                        </div>
-                      ))}
+                          );
+                        })}
+                      </div>
                     </div>
                   ) : (
-                    <div className="text-center py-4 text-gray-400 text-sm">
+                    <div className="text-center py-8 text-gray-400 text-sm">
                       Cargando evidencias...
                     </div>
                   )}
@@ -347,6 +405,13 @@ export function ProgressTab({ projectId }: ProgressTabProps) {
           onSuccess={handleEvidenceUploadSuccess}
         />
       )}
+
+      <CreateMilestoneModal
+        isOpen={isCreateMilestoneModalOpen}
+        onClose={() => setIsCreateMilestoneModalOpen(false)}
+        projectId={projectId}
+        onSuccess={loadMilestones}
+      />
     </div>
   );
 }

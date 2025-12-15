@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Save, Plus, Upload, FileText } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { useCurrency } from '../../contexts/CurrencyContext';
+import { useProjectCurrency } from '../../hooks/useProjectCurrency';
 
 interface PaymentMilestone {
   milestone_name: string;
@@ -19,7 +19,7 @@ interface AddContractModalProps {
 }
 
 export function AddContractModal({ isOpen, onClose, projectId, onSuccess }: AddContractModalProps) {
-  const { currency, exchangeRate } = useCurrency();
+  const { currency, exchangeRate, formatAmount: projectFormatAmount, convertToUSD, convertFromUSD } = useProjectCurrency(projectId);
   const [loading, setLoading] = useState(false);
   const [subcontractor, setSubcontractor] = useState('');
   const [serviceType, setServiceType] = useState('Instalación Eléctrica');
@@ -71,10 +71,7 @@ export function AddContractModal({ isOpen, onClose, projectId, onSuccess }: AddC
   }
 
   const calculateMilestoneAmounts = (total: number) => {
-    let totalInUSD = total;
-    if (currency === 'COP') {
-      totalInUSD = total / exchangeRate;
-    }
+    const totalInUSD = convertToUSD(total);
 
     setMilestones((prev) =>
       prev.map((m) => ({
@@ -138,10 +135,7 @@ export function AddContractModal({ isOpen, onClose, projectId, onSuccess }: AddC
     setLoading(true);
 
     try {
-      let totalInUSD = parseFloat(totalValue);
-      if (currency === 'COP') {
-        totalInUSD = totalInUSD / exchangeRate;
-      }
+      const totalInUSD = convertToUSD(parseFloat(totalValue));
 
       let contractFileUrl: string | null = null;
 
@@ -230,12 +224,7 @@ export function AddContractModal({ isOpen, onClose, projectId, onSuccess }: AddC
   };
 
   const formatAmount = (amount: number) => {
-    const displayAmount = currency === 'COP' ? amount * exchangeRate : amount;
-    return new Intl.NumberFormat(currency === 'COP' ? 'es-CO' : 'en-US', {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: 2,
-    }).format(displayAmount);
+    return projectFormatAmount(amount);
   };
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -455,7 +444,7 @@ export function AddContractModal({ isOpen, onClose, projectId, onSuccess }: AddC
                   {getTotalPercentage()}%
                 </div>
                 <div className="col-span-3 text-right text-xs font-bold text-gray-800">
-                  {totalValue ? formatAmount(parseFloat(totalValue) / (currency === 'COP' ? exchangeRate : 1)) : '$0.00'}
+                  {totalValue ? formatAmount(convertToUSD(parseFloat(totalValue))) : '$0.00'}
                 </div>
                 <div className="col-span-2"></div>
               </div>

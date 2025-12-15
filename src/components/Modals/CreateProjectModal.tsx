@@ -23,11 +23,38 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
     budget: '',
     startDate: '',
     endDate: '',
+    currencyCountry: 'Colombia',
+    projectCurrency: 'COP',
+    projectExchangeRate: '4000',
   });
+
+  const COUNTRY_CURRENCIES: Record<string, { currency: string; rate: number }> = {
+    'Colombia': { currency: 'COP', rate: 4000 },
+    'United States': { currency: 'USD', rate: 1 },
+    'Mexico': { currency: 'MXN', rate: 17 },
+    'Brazil': { currency: 'BRL', rate: 5 },
+    'Argentina': { currency: 'ARS', rate: 350 },
+    'Chile': { currency: 'CLP', rate: 900 },
+    'Peru': { currency: 'PEN', rate: 3.7 },
+    'Spain': { currency: 'EUR', rate: 0.92 },
+    'United Kingdom': { currency: 'GBP', rate: 0.79 },
+    'Canada': { currency: 'CAD', rate: 1.35 },
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    if (name === 'currencyCountry') {
+      const currencyInfo = COUNTRY_CURRENCIES[value];
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+        projectCurrency: currencyInfo?.currency || 'USD',
+        projectExchangeRate: currencyInfo?.rate.toString() || '1',
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,9 +70,10 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
       }
 
       let budgetUSD = parseFloat(formData.budget) || 0;
+      const projectExchangeRate = parseFloat(formData.projectExchangeRate) || 1;
 
-      if (currency === 'COP' && budgetUSD > 0) {
-        budgetUSD = budgetUSD / exchangeRate;
+      if (formData.projectCurrency !== 'USD' && budgetUSD > 0) {
+        budgetUSD = budgetUSD / projectExchangeRate;
       }
 
       const projectName = `${formData.name} - ${formData.capacity}${formData.capacityUnit}`;
@@ -60,6 +88,9 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
             total_budget_usd: budgetUSD,
             start_date: formData.startDate || null,
             location: formData.location,
+            currency: formData.projectCurrency,
+            currency_country: formData.currencyCountry,
+            exchange_rate: projectExchangeRate,
           },
         ])
         .select()
@@ -109,6 +140,9 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
           budget: '',
           startDate: '',
           endDate: '',
+          currencyCountry: 'Colombia',
+          projectCurrency: 'COP',
+          projectExchangeRate: '4000',
         });
 
         onSuccess();
@@ -263,6 +297,53 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
             />
           </div>
 
+          <div className="border-t border-gray-200 pt-4">
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">Configuración de Moneda</h4>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">País</label>
+                <select
+                  name="currencyCountry"
+                  value={formData.currencyCountry}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-white text-sm"
+                >
+                  <option>Colombia</option>
+                  <option>United States</option>
+                  <option>Mexico</option>
+                  <option>Brazil</option>
+                  <option>Argentina</option>
+                  <option>Chile</option>
+                  <option>Peru</option>
+                  <option>Spain</option>
+                  <option>United Kingdom</option>
+                  <option>Canada</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Moneda</label>
+                <input
+                  type="text"
+                  value={formData.projectCurrency}
+                  disabled
+                  className="w-full border border-gray-200 rounded-lg px-2 py-2 bg-gray-50 text-gray-700 text-sm font-medium"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Tasa a USD</label>
+                <input
+                  type="number"
+                  name="projectExchangeRate"
+                  value={formData.projectExchangeRate}
+                  onChange={handleChange}
+                  min="0"
+                  step="0.01"
+                  className="w-full border border-gray-300 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 text-sm"
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-1">
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -270,7 +351,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-2 text-gray-500 text-xs font-bold mt-0.5">
-                  {currency}
+                  {formData.projectCurrency}
                 </span>
                 <input
                   type="number"

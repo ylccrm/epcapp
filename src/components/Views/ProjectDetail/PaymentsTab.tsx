@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Plus, FileText, CheckCircle, Clock, DollarSign, Edit } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
-import { useCurrency } from '../../../contexts/CurrencyContext';
+import { useProjectCurrency } from '../../../hooks/useProjectCurrency';
 import { AddContractModal } from '../../Modals/AddContractModal';
 import { EditContractModal } from '../../Modals/EditContractModal';
 import { ViewContractModal } from '../../Modals/ViewContractModal';
@@ -19,7 +19,7 @@ interface PaymentsTabProps {
 }
 
 export function PaymentsTab({ projectId }: PaymentsTabProps) {
-  const { formatAmount } = useCurrency();
+  const { formatAmount } = useProjectCurrency(projectId);
   const [contracts, setContracts] = useState<ContractWithMilestones[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
