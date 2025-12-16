@@ -2,7 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg-sidebar: #0f172a;
+  --bg-sidebar-header: #020617;
+  --bg-sidebar-hover: #1e293b;
+  --accent-green-500: #10b981;
+  --accent-green-600: #059669;
+  --text-sidebar: #cbd5e1;
+  --text-sidebar-active: #0f172a;
+  --border-sidebar: rgba(255, 255, 255, 0.1);
+}
+
 @layer utilities {
+  .shadow-glow-green {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+  }
   @keyframes slide-in {
     from {
       transform: translateX(100%);
