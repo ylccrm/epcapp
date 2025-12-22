@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Sun, PieChart, Building2, Warehouse, Settings, Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import type { Database } from '../../lib/database.types';
 
 type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
@@ -12,16 +13,17 @@ interface SidebarProps {
 
 export function Sidebar({ currentView, onNavigate, userProfile }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { t } = useLanguage();
 
   const navItems = [
-    { id: 'dashboard', icon: PieChart, label: 'Dashboard', section: 'Gestión', roles: ['admin', 'supervisor', 'installer'] },
-    { id: 'projects', icon: Building2, label: 'Proyectos', section: 'Gestión', roles: ['admin', 'supervisor', 'installer'] },
-    { id: 'inventory', icon: Warehouse, label: 'Almacén Central', section: 'Gestión', roles: ['admin', 'supervisor', 'installer'] },
-    { id: 'providers', icon: Settings, label: 'Proveedores', section: 'Admin', roles: ['admin', 'supervisor', 'installer'] },
-    { id: 'users', icon: Users, label: 'Usuarios', section: 'Admin', roles: ['admin'] },
+    { id: 'dashboard', icon: PieChart, label: t('nav.dashboard'), section: 'management', roles: ['admin', 'supervisor', 'installer'] },
+    { id: 'projects', icon: Building2, label: t('nav.projects'), section: 'management', roles: ['admin', 'supervisor', 'installer'] },
+    { id: 'inventory', icon: Warehouse, label: t('nav.inventory'), section: 'management', roles: ['admin', 'supervisor', 'installer'] },
+    { id: 'providers', icon: Settings, label: t('nav.suppliers'), section: 'admin', roles: ['admin', 'supervisor', 'installer'] },
+    { id: 'users', icon: Users, label: t('nav.users'), section: 'admin', roles: ['admin'] },
   ];
 
-  const sections = ['Gestión', 'Admin'];
+  const sections = ['management', 'admin'];
 
   const filteredNavItems = navItems.filter(item =>
     !userProfile || item.roles.includes(userProfile.role)
@@ -54,7 +56,7 @@ export function Sidebar({ currentView, onNavigate, userProfile }: SidebarProps) 
             <div key={section}>
               {!isCollapsed && (
                 <p className="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-4 first:mt-0">
-                  {section}
+                  {section === 'management' ? t('nav.dashboard') : 'Admin'}
                 </p>
               )}
               {isCollapsed && sectionItems.length > 0 && (
@@ -104,9 +106,9 @@ export function Sidebar({ currentView, onNavigate, userProfile }: SidebarProps) 
                 {userProfile?.full_name || 'Usuario'}
               </p>
               <p className="text-xs text-slate-400">
-                {userProfile?.role === 'admin' && 'Super Admin'}
-                {userProfile?.role === 'supervisor' && 'Supervisor'}
-                {userProfile?.role === 'installer' && 'Instalador'}
+                {userProfile?.role === 'admin' && t('users.roles.admin')}
+                {userProfile?.role === 'supervisor' && t('users.roles.supervisor')}
+                {userProfile?.role === 'installer' && t('users.roles.installer')}
               </p>
             </div>
           </div>
@@ -124,14 +126,14 @@ export function Sidebar({ currentView, onNavigate, userProfile }: SidebarProps) 
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="w-full flex items-center justify-center py-2 rounded-lg bg-[var(--bg-sidebar-hover)] hover:bg-[var(--accent-green-500)] hover:text-[var(--text-sidebar-active)] transition-all duration-200 group"
-          title={isCollapsed ? 'Expandir' : 'Colapsar'}
+          title={isCollapsed ? t('common.expand') : t('common.collapse')}
         >
           {isCollapsed ? (
             <ChevronRight size={18} />
           ) : (
             <>
               <ChevronLeft size={18} className="mr-2" />
-              <span className="text-sm font-medium">Colapsar</span>
+              <span className="text-sm font-medium">{t('common.collapse')}</span>
             </>
           )}
         </button>

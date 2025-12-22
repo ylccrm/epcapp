@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { CurrencyProvider } from './contexts/CurrencyContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { Layout } from './components/Layout/Layout';
 import { Dashboard } from './components/Views/Dashboard';
 import { Projects } from './components/Views/Projects';
@@ -16,6 +17,7 @@ type ViewType = 'dashboard' | 'projects' | 'inventory' | 'providers' | 'users' |
 
 function AppContent() {
   const { user, userProfile, loading } = useAuth();
+  const { t } = useLanguage();
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -36,17 +38,17 @@ function AppContent() {
   const getHeaderTitle = () => {
     switch (currentView) {
       case 'dashboard':
-        return 'Panel de Control';
+        return t('dashboard.title');
       case 'projects':
-        return 'Cartera de Proyectos';
+        return t('projects.title');
       case 'inventory':
-        return 'Almacén Central';
+        return t('inventory.title');
       case 'providers':
-        return 'Gestión de Proveedores';
+        return t('suppliers.title');
       case 'users':
-        return 'Gestión de Usuarios';
+        return t('users.title');
       case 'project-detail':
-        return 'Gestión de Proyecto';
+        return t('projects.details');
       default:
         return 'SolarEPC';
     }
@@ -57,7 +59,7 @@ function AppContent() {
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando...</p>
+          <p className="mt-4 text-gray-600">{t('common.loading')}...</p>
         </div>
       </div>
     );
@@ -104,7 +106,9 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <LanguageProvider>
+        <AppContent />
+      </LanguageProvider>
     </AuthProvider>
   );
 }
