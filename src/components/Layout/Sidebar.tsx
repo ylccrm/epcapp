@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sun, PieChart, Building2, Warehouse, Settings, Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Sun, PieChart, Building2, Warehouse, DollarSign, Settings, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Database } from '../../lib/database.types';
 
 type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
@@ -17,6 +17,7 @@ export function Sidebar({ currentView, onNavigate, userProfile }: SidebarProps) 
     { id: 'dashboard', icon: PieChart, label: 'Dashboard', section: 'Gestión', roles: ['admin', 'supervisor', 'installer'] },
     { id: 'projects', icon: Building2, label: 'Proyectos', section: 'Gestión', roles: ['admin', 'supervisor', 'installer'] },
     { id: 'inventory', icon: Warehouse, label: 'Almacén Central', section: 'Gestión', roles: ['admin', 'supervisor', 'installer'] },
+    { id: 'payments', icon: DollarSign, label: 'Pagos', section: 'Gestión', roles: ['admin', 'supervisor', 'installer'] },
     { id: 'providers', icon: Settings, label: 'Proveedores', section: 'Admin', roles: ['admin', 'supervisor', 'installer'] },
     { id: 'users', icon: Users, label: 'Usuarios', section: 'Admin', roles: ['admin'] },
   ];

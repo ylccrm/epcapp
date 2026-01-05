@@ -5,12 +5,13 @@ import { Layout } from './components/Layout/Layout';
 import { Dashboard } from './components/Views/Dashboard';
 import { Projects } from './components/Views/Projects';
 import { Inventory } from './components/Views/Inventory';
+import { Payments } from './components/Views/Payments';
 import { Suppliers } from './components/Views/Suppliers';
 import { Users } from './components/Views/Users';
 import { ProjectDetail } from './components/Views/ProjectDetail/ProjectDetail';
 import { CreateProjectModal } from './components/Modals/CreateProjectModal';
 
-type ViewType = 'dashboard' | 'projects' | 'inventory' | 'providers' | 'users' | 'project-detail';
+type ViewType = 'dashboard' | 'projects' | 'inventory' | 'payments' | 'providers' | 'users' | 'project-detail';
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
@@ -38,6 +39,8 @@ function App() {
         return 'Cartera de Proyectos';
       case 'inventory':
         return 'Almacén Central';
+      case 'payments':
+        return 'Control de Pagos';
       case 'providers':
         return 'Gestión de Proveedores';
       case 'users':
@@ -66,6 +69,7 @@ function App() {
             <Projects onNavigate={handleNavigate} key={`projects-${refreshTrigger}`} />
           )}
           {currentView === 'inventory' && <Inventory />}
+          {currentView === 'payments' && <Payments />}
           {currentView === 'providers' && <Suppliers />}
           {currentView === 'users' && <Users />}
           {currentView === 'project-detail' && selectedProjectId && (
