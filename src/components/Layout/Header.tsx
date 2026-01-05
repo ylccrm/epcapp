@@ -1,6 +1,7 @@
-import { LogOut, User } from 'lucide-react';
+import { Languages } from 'lucide-react';
+import { useState } from 'react';
 import { useCurrency } from '../../contexts/CurrencyContext';
-import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { NotificationDropdown } from '../Notifications/NotificationDropdown';
 
 interface HeaderProps {
@@ -10,15 +11,8 @@ interface HeaderProps {
 
 export function Header({ title, onNavigate }: HeaderProps) {
   const { currency, setCurrency } = useCurrency();
-  const { user, signOut } = useAuth();
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
+  const { language, setLanguage, t } = useLanguage();
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
 
   return (
     <header className="h-16 bg-white shadow-sm border-b border-gray-200 flex justify-between items-center px-8 z-10 shrink-0">
@@ -48,23 +42,46 @@ export function Header({ title, onNavigate }: HeaderProps) {
           </button>
         </div>
 
-        <NotificationDropdown onNavigate={onNavigate} />
-
-        <div className="h-8 w-px bg-gray-200 mx-2"></div>
-
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-sm text-gray-700">
-            <User size={16} className="text-gray-500" />
-            <span className="font-medium">{user?.email}</span>
-          </div>
+        <div className="relative">
           <button
-            onClick={handleSignOut}
+            onClick={() => setShowLanguageMenu(!showLanguageMenu)}
             className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition"
-            title="Cerrar Sesión"
+            title={t('settings.selectLanguage')}
           >
-            <LogOut size={16} />
+            <Languages size={16} />
+            <span className="text-xs font-bold">{language.toUpperCase()}</span>
           </button>
+          {showLanguageMenu && (
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+              <button
+                onClick={() => {
+                  setLanguage('es');
+                  setShowLanguageMenu(false);
+                }}
+                className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between ${
+                  language === 'es' ? 'text-blue-600 font-medium' : 'text-gray-700'
+                }`}
+              >
+                <span>{t('settings.spanish')}</span>
+                {language === 'es' && <span>✓</span>}
+              </button>
+              <button
+                onClick={() => {
+                  setLanguage('en');
+                  setShowLanguageMenu(false);
+                }}
+                className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between ${
+                  language === 'en' ? 'text-blue-600 font-medium' : 'text-gray-700'
+                }`}
+              >
+                <span>{t('settings.english')}</span>
+                {language === 'en' && <span>✓</span>}
+              </button>
+            </div>
+          )}
         </div>
+
+        <NotificationDropdown onNavigate={onNavigate} />
       </div>
     </header>
   );

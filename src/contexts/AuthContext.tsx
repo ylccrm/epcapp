@@ -1,83 +1,28 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
-import type { User } from '@supabase/supabase-js';
+import { createContext, useContext } from 'react';
 import type { Database } from '../lib/database.types';
 
 type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
 
 interface AuthContextType {
-  user: User | null;
   userProfile: UserProfile | null;
   loading: boolean;
-  signInWithGoogle: () => Promise<void>;
-  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  async function loadUserProfile(userId: string) {
-    try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (error) throw error;
-      setUserProfile(data);
-    } catch (error) {
-      console.error('Error loading user profile:', error);
-      setUserProfile(null);
-    }
-  }
-
-  useEffect(() => {
-    (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await loadUserProfile(session.user.id);
-      }
-      setLoading(false);
-    })();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      (async () => {
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          await loadUserProfile(session.user.id);
-        } else {
-          setUserProfile(null);
-        }
-      })();
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin,
-      },
-    });
-
-    if (error) throw error;
-  };
-
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+  const userProfile: UserProfile | null = {
+    id: 'public-user',
+    full_name: 'Admin',
+    email: 'admin@solarepc.com',
+    role: 'admin',
+    active: true,
+    created_at: new Date().toISOString(),
+    last_login: new Date().toISOString()
   };
 
   return (
-    <AuthContext.Provider value={{ user, userProfile, loading, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ userProfile, loading: false }}>
       {children}
     </AuthContext.Provider>
   );

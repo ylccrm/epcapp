@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { CurrencyProvider } from './contexts/CurrencyContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import { Layout } from './components/Layout/Layout';
 import { Dashboard } from './components/Views/Dashboard';
 import { Projects } from './components/Views/Projects';
@@ -10,12 +11,11 @@ import { Suppliers } from './components/Views/Suppliers';
 import { Users } from './components/Views/Users';
 import { ProjectDetail } from './components/Views/ProjectDetail/ProjectDetail';
 import { CreateProjectModal } from './components/Modals/CreateProjectModal';
-import { AuthPage } from './components/Auth/AuthPage';
 
 type ViewType = 'dashboard' | 'projects' | 'inventory' | 'providers' | 'users' | 'project-detail';
 
 function AppContent() {
-  const { user, userProfile, loading } = useAuth();
+  const { userProfile } = useAuth();
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -51,21 +51,6 @@ function AppContent() {
         return 'SolarEPC';
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <AuthPage />;
-  }
 
   return (
     <CurrencyProvider>
@@ -104,7 +89,9 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <LanguageProvider>
+        <AppContent />
+      </LanguageProvider>
     </AuthProvider>
   );
 }
