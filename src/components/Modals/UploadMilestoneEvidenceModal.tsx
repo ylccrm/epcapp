@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { X, Upload, FileText, Image as ImageIcon, Video } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 
 interface UploadMilestoneEvidenceModalProps {
@@ -19,7 +18,6 @@ export function UploadMilestoneEvidenceModal({
   milestoneName,
   onSuccess,
 }: UploadMilestoneEvidenceModalProps) {
-  const { userProfile } = useAuth();
   const { showToast } = useToast();
   const [file, setFile] = useState<File | null>(null);
   const [description, setDescription] = useState('');
@@ -55,11 +53,6 @@ export function UploadMilestoneEvidenceModal({
       return;
     }
 
-    if (!userProfile) {
-      showToast('Debes estar autenticado', 'error');
-      return;
-    }
-
     try {
       setUploading(true);
 
@@ -83,9 +76,8 @@ export function UploadMilestoneEvidenceModal({
           file_url: urlData.publicUrl,
           file_name: file.name,
           file_type: getFileType(file.type),
-          file_size: file.size,
           description: description || null,
-          uploaded_by: userProfile.id,
+          uploaded_by: 'Usuario',
         });
 
       if (dbError) throw dbError;

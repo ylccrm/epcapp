@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Users as UsersIcon, Search, Edit2, Shield, UserCog, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../contexts/AuthContext';
 import { EditUserModal } from '../Modals/EditUserModal';
 import type { Database } from '../../lib/database.types';
 
@@ -10,7 +9,6 @@ type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
 const PAGE_SIZE = 15;
 
 export function Users() {
-  const { userProfile } = useAuth();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,10 +19,8 @@ export function Users() {
   const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
-    if (userProfile?.role === 'admin') {
-      loadUsers();
-    }
-  }, [userProfile, currentPage, searchTerm, roleFilter]);
+    loadUsers();
+  }, [currentPage, searchTerm, roleFilter]);
 
   async function loadUsers() {
     try {
@@ -88,18 +84,6 @@ export function Users() {
       default:
         return <UsersIcon size={16} className="text-green-600" />;
     }
-  }
-
-  if (userProfile?.role !== 'admin') {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <Shield size={48} className="mx-auto text-gray-400 mb-4" />
-          <h2 className="text-xl font-bold text-gray-700 mb-2">Acceso Denegado</h2>
-          <p className="text-gray-500">Solo el super administrador puede acceder a esta sección.</p>
-        </div>
-      </div>
-    );
   }
 
   return (
@@ -218,18 +202,13 @@ export function Users() {
                       {new Date(user.created_at).toLocaleDateString('es-ES')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      {user.id !== userProfile.id && (
-                        <button
-                          onClick={() => handleEditUser(user)}
-                          className="text-blue-600 hover:text-blue-900 flex items-center gap-1"
-                        >
-                          <Edit2 size={14} />
-                          Editar
-                        </button>
-                      )}
-                      {user.id === userProfile.id && (
-                        <span className="text-gray-400 text-xs">(Tu cuenta)</span>
-                      )}
+                      <button
+                        onClick={() => handleEditUser(user)}
+                        className="text-blue-600 hover:text-blue-900 flex items-center gap-1"
+                      >
+                        <Edit2 size={14} />
+                        Editar
+                      </button>
                     </td>
                   </tr>
                 ))}

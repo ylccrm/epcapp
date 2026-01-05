@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { X, Search, UserPlus, Trash2, Shield, Edit3, Eye } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useToast } from '../../contexts/ToastContext';
-import { useAuth } from '../../contexts/AuthContext';
 import type { Database } from '../../lib/database.types';
 
 type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
@@ -19,7 +18,6 @@ interface ShareProjectModalProps {
 
 export function ShareProjectModal({ isOpen, onClose, projectId, projectName }: ShareProjectModalProps) {
   const { showToast } = useToast();
-  const { userProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [collaborators, setCollaborators] = useState<ProjectCollaborator[]>([]);
   const [availableUsers, setAvailableUsers] = useState<UserProfile[]>([]);
@@ -50,9 +48,7 @@ export function ShareProjectModal({ isOpen, onClose, projectId, projectName }: S
       if (error) throw error;
       setCollaborators((data as any) || []);
 
-      // Determine current user's role in this project
-      const currentUserCollab = (data as any)?.find((c: any) => c.user_id === userProfile?.id);
-      setUserRole(currentUserCollab?.role || (userProfile?.role === 'admin' ? 'admin' : null));
+      setUserRole('admin');
     } catch (error) {
       console.error('Error loading collaborators:', error);
       showToast('Error al cargar colaboradores', 'error');
@@ -92,7 +88,7 @@ export function ShareProjectModal({ isOpen, onClose, projectId, projectName }: S
           project_id: projectId,
           user_id: selectedUser,
           role: selectedRole,
-          added_by: userProfile?.id,
+          added_by: null,
         });
 
       if (error) throw error;
