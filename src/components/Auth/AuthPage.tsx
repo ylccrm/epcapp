@@ -1,14 +1,11 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useLanguage } from '../../contexts/LanguageContext';
-import { Sun, Languages } from 'lucide-react';
+import { Sun } from 'lucide-react';
 
 export function AuthPage() {
   const { signInWithGoogle } = useAuth();
-  const { language, setLanguage, t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
 
   const handleGoogleSignIn = async () => {
     setError('');
@@ -24,63 +21,22 @@ export function AuthPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
-      <div className="absolute top-4 right-4 z-50">
-        <div className="relative">
-          <button
-            onClick={() => setShowLanguageMenu(!showLanguageMenu)}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white hover:bg-white/10 rounded-lg transition backdrop-blur-sm"
-            title={t('settings.selectLanguage')}
-          >
-            <Languages size={18} />
-            <span className="text-xs font-bold">{language.toUpperCase()}</span>
-          </button>
-          {showLanguageMenu && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-              <button
-                onClick={() => {
-                  setLanguage('es');
-                  setShowLanguageMenu(false);
-                }}
-                className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between ${
-                  language === 'es' ? 'text-blue-600 font-medium' : 'text-gray-700'
-                }`}
-              >
-                <span>{t('settings.spanish')}</span>
-                {language === 'es' && <span>✓</span>}
-              </button>
-              <button
-                onClick={() => {
-                  setLanguage('en');
-                  setShowLanguageMenu(false);
-                }}
-                className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between ${
-                  language === 'en' ? 'text-blue-600 font-medium' : 'text-gray-700'
-                }`}
-              >
-                <span>{t('settings.english')}</span>
-                {language === 'en' && <span>✓</span>}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         <div className="bg-gradient-to-r from-yellow-400 to-orange-500 p-8 text-center">
           <div className="flex justify-center mb-4">
             <Sun size={64} className="text-white" />
           </div>
           <h1 className="text-3xl font-bold text-white">SolarEPC Manager</h1>
-          <p className="text-white/90 mt-2">{t('auth.signInDescription')}</p>
+          <p className="text-white/90 mt-2">Sistema de Gestión de Proyectos Solares</p>
         </div>
 
         <div className="p-8 space-y-6">
           <div>
             <h2 className="text-2xl font-bold text-slate-800 text-center mb-2">
-              {t('auth.signIn')}
+              Iniciar Sesión
             </h2>
             <p className="text-gray-600 text-center text-sm">
-              {t('auth.signInWithGoogle')}
+              Accede con tu cuenta de Google
             </p>
           </div>
 
@@ -113,13 +69,11 @@ export function AuthPage() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            {loading ? t('common.loading') + '...' : t('auth.signInWithGoogle')}
+            {loading ? 'Redirigiendo...' : 'Continuar con Google'}
           </button>
 
           <p className="text-xs text-gray-500 text-center">
-            {language === 'es'
-              ? 'Al continuar, aceptas nuestros términos y condiciones'
-              : 'By continuing, you accept our terms and conditions'}
+            Al continuar, aceptas nuestros términos y condiciones
           </p>
         </div>
       </div>
