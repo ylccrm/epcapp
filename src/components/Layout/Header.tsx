@@ -1,6 +1,4 @@
-import { LogOut, User } from 'lucide-react';
 import { useCurrency } from '../../contexts/CurrencyContext';
-import { useAuth } from '../../contexts/AuthContext';
 import { NotificationDropdown } from '../Notifications/NotificationDropdown';
 
 interface HeaderProps {
@@ -10,15 +8,6 @@ interface HeaderProps {
 
 export function Header({ title, onNavigate }: HeaderProps) {
   const { currency, setCurrency } = useCurrency();
-  const { user, signOut } = useAuth();
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
 
   return (
     <header className="h-16 bg-white shadow-sm border-b border-gray-200 flex justify-between items-center px-8 z-10 shrink-0">
@@ -49,22 +38,6 @@ export function Header({ title, onNavigate }: HeaderProps) {
         </div>
 
         <NotificationDropdown onNavigate={onNavigate} />
-
-        <div className="h-8 w-px bg-gray-200 mx-2"></div>
-
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-sm text-gray-700">
-            <User size={16} className="text-gray-500" />
-            <span className="font-medium">{user?.email}</span>
-          </div>
-          <button
-            onClick={handleSignOut}
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition"
-            title="Cerrar Sesión"
-          >
-            <LogOut size={16} />
-          </button>
-        </div>
       </div>
     </header>
   );

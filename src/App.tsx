@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { CurrencyProvider } from './contexts/CurrencyContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { Layout } from './components/Layout/Layout';
@@ -10,12 +9,10 @@ import { Suppliers } from './components/Views/Suppliers';
 import { Users } from './components/Views/Users';
 import { ProjectDetail } from './components/Views/ProjectDetail/ProjectDetail';
 import { CreateProjectModal } from './components/Modals/CreateProjectModal';
-import { AuthPage } from './components/Auth/AuthPage';
 
 type ViewType = 'dashboard' | 'projects' | 'inventory' | 'providers' | 'users' | 'project-detail';
 
-function AppContent() {
-  const { user, userProfile, loading } = useAuth();
+function App() {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -52,21 +49,6 @@ function AppContent() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <AuthPage />;
-  }
-
   return (
     <CurrencyProvider>
       <ToastProvider>
@@ -75,7 +57,7 @@ function AppContent() {
           onNavigate={handleNavigate}
           headerTitle={getHeaderTitle()}
           onNewProject={() => setIsModalOpen(true)}
-          userProfile={userProfile}
+          userProfile={null}
         >
           {currentView === 'dashboard' && (
             <Dashboard onNavigate={handleNavigate} key={`dashboard-${refreshTrigger}`} />
@@ -98,14 +80,6 @@ function AppContent() {
         />
       </ToastProvider>
     </CurrencyProvider>
-  );
-}
-
-function App() {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
   );
 }
 
