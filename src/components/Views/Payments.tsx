@@ -75,6 +75,18 @@ interface SupplierDebt {
   milestone_count: number;
 }
 
+interface ProjectSupplierGroup {
+  project_id: string;
+  project_name: string;
+  supplier_id: string;
+  supplier_name: string;
+  total_pending: number;
+  total_paid: number;
+  total_committed: number;
+  percentage_paid: number;
+  milestones: PendingMilestone[];
+}
+
 export function Payments() {
   const { formatAmount } = useCurrency();
   const [loading, setLoading] = useState(true);
@@ -86,6 +98,8 @@ export function Payments() {
   const [pendingMilestones, setPendingMilestones] = useState<PendingMilestone[]>([]);
   const [supplierDebts, setSupplierDebts] = useState<SupplierDebt[]>([]);
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
+  const [projectSupplierGroups, setProjectSupplierGroups] = useState<ProjectSupplierGroup[]>([]);
+  const [expandedSupplierGroups, setExpandedSupplierGroups] = useState<Set<string>>(new Set());
 
   const [stats, setStats] = useState({
     totalBudget: 0,
@@ -252,9 +266,59 @@ export function Payments() {
       const pendingOnly = allFormatted.filter((m) => m.status !== 'Pagado');
       setPendingMilestones(allFormatted);
       calculateSupplierDebts(allFormatted);
+      calculateProjectSupplierGroups(allFormatted);
     } catch (error) {
       console.error('Error loading pending milestones:', error);
     }
+  }
+
+  function calculateProjectSupplierGroups(milestones: PendingMilestone[]) {
+    const groupMap = new Map<string, ProjectSupplierGroup>();
+
+    milestones.forEach((milestone) => {
+      const key = `${milestone.project_id}-${milestone.supplier_id}`;
+
+      if (!groupMap.has(key)) {
+        groupMap.set(key, {
+          project_id: milestone.project_id,
+          project_name: milestone.project_name,
+          supplier_id: milestone.supplier_id,
+          supplier_name: milestone.supplier_name,
+          total_pending: 0,
+          total_paid: 0,
+          total_committed: 0,
+          percentage_paid: 0,
+          milestones: [],
+        });
+      }
+
+      const group = groupMap.get(key)!;
+      group.milestones.push(milestone);
+      group.total_committed += milestone.amount;
+
+      if (milestone.status === 'Pagado') {
+        group.total_paid += milestone.amount;
+      } else {
+        group.total_pending += milestone.amount;
+      }
+    });
+
+    const groups = Array.from(groupMap.values()).map((group) => ({
+      ...group,
+      percentage_paid:
+        group.total_committed > 0
+          ? (group.total_paid / group.total_committed) * 100
+          : 0,
+    }));
+
+    groups.sort((a, b) => {
+      if (a.project_name !== b.project_name) {
+        return a.project_name.localeCompare(b.project_name);
+      }
+      return b.total_pending - a.total_pending;
+    });
+
+    setProjectSupplierGroups(groups);
   }
 
   function calculateSupplierDebts(milestones: PendingMilestone[]) {
@@ -1007,140 +1071,189 @@ export function Payments() {
         </>
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-            <h3 className="font-bold text-slate-700">Compromisos y Pagos</h3>
-            <button className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition">
-              <Filter size={16} />
-              Filtros
-            </button>
+          <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-100">
+            <h3 className="font-bold text-slate-800 flex items-center gap-2">
+              <DollarSign size={20} className="text-blue-600" />
+              Compromisos y Pagos
+            </h3>
+            <p className="text-xs text-gray-600 mt-1">
+              Detalles de pagos por proveedor en el proyecto seleccionado
+            </p>
           </div>
 
           {loading ? (
             <div className="p-12 text-center text-gray-500">
               Cargando compromisos...
             </div>
-          ) : commitments.length === 0 ? (
+          ) : projectSupplierGroups.filter((g) => g.project_id === selectedProject).length === 0 ? (
             <div className="p-12 text-center">
               <DollarSign size={48} className="mx-auto text-gray-300 mb-3" />
               <p className="text-gray-500 font-medium">
-                No hay compromisos registrados
-              </p>
-              <p className="text-sm text-gray-400 mt-1">
-                Comienza creando una orden de compra o servicio
+                No hay compromisos registrados para este proyecto
               </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-gray-500 font-semibold border-b border-gray-200">
+                <thead className="bg-gray-50 text-gray-600 font-semibold border-b border-gray-200">
                   <tr>
-                    <th className="px-4 py-3 text-left w-8"></th>
-                    <th className="px-4 py-3 text-left">OC/OS</th>
-                    <th className="px-4 py-3 text-left">Proveedor</th>
-                    <th className="px-4 py-3 text-left">WBS</th>
-                    <th className="px-4 py-3 text-left">Disciplina</th>
-                    <th className="px-4 py-3 text-right">Comprometido</th>
-                    <th className="px-4 py-3 text-right">Facturado</th>
-                    <th className="px-4 py-3 text-right">Pagado</th>
-                    <th className="px-4 py-3 text-right">Saldo</th>
-                    <th className="px-4 py-3 text-center">% Ejec.</th>
-                    <th className="px-4 py-3 text-center">Estado</th>
-                    <th className="px-4 py-3 text-center">Acciones</th>
+                    <th className="px-6 py-3 text-left w-12"></th>
+                    <th className="px-6 py-3 text-left">Proyecto</th>
+                    <th className="px-6 py-3 text-left">Proveedor</th>
+                    <th className="px-6 py-3 text-right">Pagos Pendientes</th>
+                    <th className="px-6 py-3 text-center">% Pagado</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {commitments.map((commitment) => {
-                    const balance = commitment.total_amount - commitment.paid_amount;
-                    const execPercentage =
-                      commitment.total_amount > 0
-                        ? (commitment.paid_amount / commitment.total_amount) * 100
-                        : 0;
-                    const isExpanded = expandedRows.has(commitment.id);
+                  {projectSupplierGroups
+                    .filter((g) => g.project_id === selectedProject)
+                    .map((group) => {
+                      const groupKey = `${group.project_id}-${group.supplier_id}`;
+                      const isExpanded = expandedSupplierGroups.has(groupKey);
 
-                    return (
-                      <tr key={commitment.id} className="hover:bg-gray-50 transition">
-                        <td className="px-4 py-3">
-                          <button
-                            onClick={() => toggleRow(commitment.id)}
-                            className="text-gray-400 hover:text-gray-600 transition"
+                      return (
+                        <>
+                          <tr
+                            key={groupKey}
+                            className="hover:bg-blue-50 transition cursor-pointer"
+                            onClick={() => {
+                              const newExpanded = new Set(expandedSupplierGroups);
+                              if (isExpanded) {
+                                newExpanded.delete(groupKey);
+                              } else {
+                                newExpanded.add(groupKey);
+                              }
+                              setExpandedSupplierGroups(newExpanded);
+                            }}
                           >
-                            {isExpanded ? (
-                              <ChevronDown size={16} />
-                            ) : (
-                              <ChevronRight size={16} />
-                            )}
-                          </button>
-                        </td>
-                        <td className="px-4 py-3 font-medium text-slate-800">
-                          {commitment.commitment_number}
-                        </td>
-                        <td className="px-4 py-3 text-gray-700">
-                          {commitment.supplier_name}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div>
-                            <p className="font-mono text-xs text-gray-500">
-                              {commitment.wbs_code}
-                            </p>
-                            <p className="text-gray-700 text-xs">
-                              {commitment.wbs_component}
-                            </p>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium">
-                            {commitment.discipline}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-right font-medium text-slate-800">
-                          {formatAmount(commitment.total_amount)}
-                        </td>
-                        <td className="px-4 py-3 text-right text-gray-700">
-                          {formatAmount(commitment.invoiced_amount)}
-                        </td>
-                        <td className="px-4 py-3 text-right text-green-700 font-medium">
-                          {formatAmount(commitment.paid_amount)}
-                        </td>
-                        <td className="px-4 py-3 text-right text-orange-700 font-medium">
-                          {formatAmount(balance)}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <div className="w-16 bg-gray-200 rounded-full h-2">
-                              <div
-                                className="bg-green-600 h-2 rounded-full"
-                                style={{ width: `${execPercentage}%` }}
-                              ></div>
-                            </div>
-                            <span className="text-xs text-gray-600 font-medium">
-                              {execPercentage.toFixed(0)}%
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <span className="px-2 py-1 bg-green-50 text-green-700 rounded text-xs font-medium">
-                            {commitment.status}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              title="Agregar factura"
-                              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition"
-                            >
-                              <FileText size={16} />
-                            </button>
-                            <button
-                              title="Registrar pago"
-                              className="p-1.5 text-green-600 hover:bg-green-50 rounded transition"
-                            >
-                              <CreditCard size={16} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                            <td className="px-6 py-4">
+                              <button className="text-gray-400 hover:text-gray-600 transition">
+                                {isExpanded ? (
+                                  <ChevronDown size={18} />
+                                ) : (
+                                  <ChevronRight size={18} />
+                                )}
+                              </button>
+                            </td>
+                            <td className="px-6 py-4 font-medium text-slate-800">
+                              {group.project_name}
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2">
+                                <Building2 size={16} className="text-gray-400" />
+                                <span className="text-gray-700 font-medium">
+                                  {group.supplier_name}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <span className="text-orange-700 font-bold text-base">
+                                {formatAmount(group.total_pending)}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center justify-center gap-3">
+                                <div className="w-24 bg-gray-200 rounded-full h-3">
+                                  <div
+                                    className="bg-green-600 h-3 rounded-full transition-all"
+                                    style={{
+                                      width: `${Math.min(group.percentage_paid, 100)}%`,
+                                    }}
+                                  ></div>
+                                </div>
+                                <span className="text-sm font-bold text-green-700 min-w-[50px] text-right">
+                                  {group.percentage_paid.toFixed(1)}%
+                                </span>
+                              </div>
+                            </td>
+                          </tr>
+                          {isExpanded && (
+                            <tr>
+                              <td colSpan={5} className="bg-gray-50 p-0">
+                                <div className="px-6 py-4">
+                                  <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                    <FileText size={16} />
+                                    Detalle de Hitos de Pago
+                                  </h4>
+                                  <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                    <table className="w-full text-xs">
+                                      <thead className="bg-gray-100 text-gray-600">
+                                        <tr>
+                                          <th className="px-4 py-2 text-left">Hito</th>
+                                          <th className="px-4 py-2 text-left">Fecha Planificada</th>
+                                          <th className="px-4 py-2 text-right">Monto</th>
+                                          <th className="px-4 py-2 text-center">Estado</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-gray-100">
+                                        {group.milestones.map((milestone) => (
+                                          <tr
+                                            key={milestone.milestone_id}
+                                            className="hover:bg-gray-50"
+                                          >
+                                            <td className="px-4 py-3 text-gray-700">
+                                              {milestone.milestone_name}
+                                            </td>
+                                            <td className="px-4 py-3 text-gray-600">
+                                              {new Date(
+                                                milestone.planned_date
+                                              ).toLocaleDateString('es-ES')}
+                                            </td>
+                                            <td className="px-4 py-3 text-right font-medium text-slate-800">
+                                              {formatAmount(milestone.amount)}
+                                            </td>
+                                            <td className="px-4 py-3 text-center">
+                                              <span
+                                                className={`px-2 py-1 rounded text-xs font-medium ${
+                                                  milestone.status === 'Pagado'
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : milestone.status === 'Facturado'
+                                                    ? 'bg-blue-100 text-blue-700'
+                                                    : milestone.status === 'Cumplido'
+                                                    ? 'bg-yellow-100 text-yellow-700'
+                                                    : 'bg-orange-100 text-orange-700'
+                                                }`}
+                                              >
+                                                {milestone.status}
+                                              </span>
+                                            </td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                      <tfoot className="bg-gray-50 font-semibold">
+                                        <tr>
+                                          <td
+                                            colSpan={2}
+                                            className="px-4 py-3 text-gray-700"
+                                          >
+                                            Totales
+                                          </td>
+                                          <td className="px-4 py-3 text-right text-slate-800">
+                                            {formatAmount(group.total_committed)}
+                                          </td>
+                                          <td className="px-4 py-3 text-center">
+                                            <div className="flex items-center justify-center gap-1">
+                                              <span className="text-green-700">
+                                                Pagado: {formatAmount(group.total_paid)}
+                                              </span>
+                                              <span className="text-gray-400">|</span>
+                                              <span className="text-orange-700">
+                                                Pendiente:{' '}
+                                                {formatAmount(group.total_pending)}
+                                              </span>
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      </tfoot>
+                                    </table>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </>
+                      );
+                    })}
                 </tbody>
               </table>
             </div>
