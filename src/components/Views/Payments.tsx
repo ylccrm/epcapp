@@ -13,9 +13,12 @@ import {
   Building2,
   Clock,
   Calendar,
+  Upload,
+  Eye,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useCurrency } from '../../contexts/CurrencyContext';
+import { UploadPaymentReceiptModal } from '../Modals/UploadPaymentReceiptModal';
 
 interface Project {
   id: string;
@@ -62,6 +65,8 @@ interface PendingMilestone {
   completed_date: string | null;
   project_id: string;
   project_name: string;
+  payment_receipt_url?: string | null;
+  paid_date?: string | null;
 }
 
 interface SupplierDebt {
@@ -100,6 +105,15 @@ export function Payments() {
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
   const [projectSupplierGroups, setProjectSupplierGroups] = useState<ProjectSupplierGroup[]>([]);
   const [expandedSupplierGroups, setExpandedSupplierGroups] = useState<Set<string>>(new Set());
+  const [uploadReceiptModal, setUploadReceiptModal] = useState<{
+    isOpen: boolean;
+    milestoneId: string;
+    milestoneName: string;
+  }>({
+    isOpen: false,
+    milestoneId: '',
+    milestoneName: '',
+  });
 
   const [stats, setStats] = useState({
     totalBudget: 0,
@@ -229,6 +243,8 @@ export function Payments() {
           status,
           planned_date,
           completed_date,
+          payment_receipt_url,
+          paid_date,
           commitment:purchase_commitments(
             id,
             commitment_number,
@@ -261,6 +277,8 @@ export function Payments() {
           completed_date: m.completed_date,
           project_id: m.commitment.project_id,
           project_name: m.commitment.project?.name || 'Sin nombre',
+          payment_receipt_url: m.payment_receipt_url,
+          paid_date: m.paid_date,
         }));
 
       const pendingOnly = allFormatted.filter((m) => m.status !== 'Pagado');
@@ -1183,6 +1201,7 @@ export function Payments() {
                                           <th className="px-4 py-2 text-left">Fecha Planificada</th>
                                           <th className="px-4 py-2 text-right">Monto</th>
                                           <th className="px-4 py-2 text-center">Estado</th>
+                                          <th className="px-4 py-2 text-center">Comprobante</th>
                                         </tr>
                                       </thead>
                                       <tbody className="divide-y divide-gray-100">
@@ -1203,19 +1222,73 @@ export function Payments() {
                                               {formatAmount(milestone.amount)}
                                             </td>
                                             <td className="px-4 py-3 text-center">
-                                              <span
-                                                className={`px-2 py-1 rounded text-xs font-medium ${
-                                                  milestone.status === 'Pagado'
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : milestone.status === 'Facturado'
-                                                    ? 'bg-blue-100 text-blue-700'
-                                                    : milestone.status === 'Cumplido'
-                                                    ? 'bg-yellow-100 text-yellow-700'
-                                                    : 'bg-orange-100 text-orange-700'
-                                                }`}
-                                              >
-                                                {milestone.status}
-                                              </span>
+                                              <div className="flex flex-col items-center gap-1">
+                                                <span
+                                                  className={`px-2 py-1 rounded text-xs font-medium ${
+                                                    milestone.status === 'Pagado'
+                                                      ? 'bg-green-100 text-green-700'
+                                                      : milestone.status === 'Facturado'
+                                                      ? 'bg-blue-100 text-blue-700'
+                                                      : milestone.status === 'Cumplido'
+                                                      ? 'bg-yellow-100 text-yellow-700'
+                                                      : 'bg-orange-100 text-orange-700'
+                                                  }`}
+                                                >
+                                                  {milestone.status}
+                                                </span>
+                                                {milestone.status === 'Pagado' && milestone.paid_date && (
+                                                  <span className="text-xs text-gray-500">
+                                                    {new Date(milestone.paid_date).toLocaleDateString('es-ES')}
+                                                  </span>
+                                                )}
+                                              </div>
+                                            </td>
+                                            <td className="px-4 py-3 text-center">
+                                              {milestone.status === 'Pagado' && (
+                                                <>
+                                                  {milestone.payment_receipt_url ? (
+                                                    <div className="flex items-center justify-center gap-2">
+                                                      <a
+                                                        href={milestone.payment_receipt_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition"
+                                                        title="Ver comprobante"
+                                                      >
+                                                        <Eye size={16} />
+                                                      </a>
+                                                      <button
+                                                        onClick={() =>
+                                                          setUploadReceiptModal({
+                                                            isOpen: true,
+                                                            milestoneId: milestone.milestone_id,
+                                                            milestoneName: milestone.milestone_name,
+                                                          })
+                                                        }
+                                                        className="p-1.5 text-green-600 hover:bg-green-50 rounded transition"
+                                                        title="Actualizar comprobante"
+                                                      >
+                                                        <Upload size={16} />
+                                                      </button>
+                                                    </div>
+                                                  ) : (
+                                                    <button
+                                                      onClick={() =>
+                                                        setUploadReceiptModal({
+                                                          isOpen: true,
+                                                          milestoneId: milestone.milestone_id,
+                                                          milestoneName: milestone.milestone_name,
+                                                        })
+                                                      }
+                                                      className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition flex items-center gap-1 mx-auto"
+                                                      title="Subir comprobante"
+                                                    >
+                                                      <Upload size={14} />
+                                                      Subir
+                                                    </button>
+                                                  )}
+                                                </>
+                                              )}
                                             </td>
                                           </tr>
                                         ))}
@@ -1231,7 +1304,7 @@ export function Payments() {
                                           <td className="px-4 py-3 text-right text-slate-800">
                                             {formatAmount(group.total_committed)}
                                           </td>
-                                          <td className="px-4 py-3 text-center">
+                                          <td className="px-4 py-3 text-center" colSpan={2}>
                                             <div className="flex items-center justify-center gap-1">
                                               <span className="text-green-700">
                                                 Pagado: {formatAmount(group.total_paid)}
@@ -1260,6 +1333,22 @@ export function Payments() {
           )}
         </div>
       )}
+
+      <UploadPaymentReceiptModal
+        isOpen={uploadReceiptModal.isOpen}
+        onClose={() =>
+          setUploadReceiptModal({
+            isOpen: false,
+            milestoneId: '',
+            milestoneName: '',
+          })
+        }
+        milestoneId={uploadReceiptModal.milestoneId}
+        milestoneName={uploadReceiptModal.milestoneName}
+        onSuccess={() => {
+          loadPendingMilestones();
+        }}
+      />
     </div>
   );
 }
