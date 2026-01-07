@@ -404,8 +404,7 @@ export function Payments() {
     const statusOrder: { [key: string]: number } = {
       'Pendiente': 1,
       'Cumplido': 2,
-      'Facturado': 3,
-      'Pagado': 4,
+      'Pagado': 3,
     };
 
     return [...projectSupplierGroups].map(group => ({
@@ -421,6 +420,35 @@ export function Payments() {
         }
       })
     }));
+  };
+
+  const handleStatusChange = async (milestoneId: string, newStatus: string) => {
+    try {
+      const updateData: any = {
+        status: newStatus,
+      };
+
+      if (newStatus === 'Pagado') {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          updateData.paid_date = new Date().toISOString().split('T')[0];
+          updateData.paid_by = user.id;
+        }
+      }
+
+      const { error } = await supabase
+        .from('payment_milestones')
+        .update(updateData)
+        .eq('id', milestoneId);
+
+      if (error) throw error;
+
+      await loadPendingMilestones();
+    } catch (error: any) {
+      console.error('Error updating status:', error);
+    }
   };
 
   async function loadCommitments() {
@@ -1270,19 +1298,21 @@ export function Payments() {
                                             </td>
                                             <td className="px-4 py-3 text-center">
                                               <div className="flex flex-col items-center gap-1">
-                                                <span
-                                                  className={`px-2 py-1 rounded text-xs font-medium ${
+                                                <select
+                                                  value={milestone.status}
+                                                  onChange={(e) => handleStatusChange(milestone.milestone_id, e.target.value)}
+                                                  className={`px-2 py-1 rounded text-xs font-medium border-0 cursor-pointer ${
                                                     milestone.status === 'Pagado'
                                                       ? 'bg-green-100 text-green-700'
-                                                      : milestone.status === 'Facturado'
-                                                      ? 'bg-blue-100 text-blue-700'
                                                       : milestone.status === 'Cumplido'
                                                       ? 'bg-yellow-100 text-yellow-700'
                                                       : 'bg-orange-100 text-orange-700'
                                                   }`}
                                                 >
-                                                  {milestone.status}
-                                                </span>
+                                                  <option value="Pendiente">Pendiente</option>
+                                                  <option value="Cumplido">Cumplido</option>
+                                                  <option value="Pagado">Pagado</option>
+                                                </select>
                                                 {milestone.status === 'Pagado' && milestone.paid_date && (
                                                   <span className="text-xs text-gray-500">
                                                     {new Date(milestone.paid_date).toLocaleDateString('es-ES')}
