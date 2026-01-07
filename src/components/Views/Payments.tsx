@@ -15,6 +15,9 @@ import {
   Calendar,
   Upload,
   Eye,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useCurrency } from '../../contexts/CurrencyContext';
@@ -114,6 +117,7 @@ export function Payments() {
     milestoneId: '',
     milestoneName: '',
   });
+  const [sortByStatus, setSortByStatus] = useState<'asc' | 'desc' | null>(null);
 
   const [stats, setStats] = useState({
     totalBudget: 0,
@@ -385,6 +389,39 @@ export function Payments() {
     debts.sort((a, b) => b.total_pending - a.total_pending);
     setSupplierDebts(debts);
   }
+
+  const handleSortByStatus = () => {
+    if (sortByStatus === null || sortByStatus === 'desc') {
+      setSortByStatus('asc');
+    } else {
+      setSortByStatus('desc');
+    }
+  };
+
+  const getSortedGroups = () => {
+    if (!sortByStatus) return projectSupplierGroups;
+
+    const statusOrder: { [key: string]: number } = {
+      'Pendiente': 1,
+      'Cumplido': 2,
+      'Facturado': 3,
+      'Pagado': 4,
+    };
+
+    return [...projectSupplierGroups].map(group => ({
+      ...group,
+      milestones: [...group.milestones].sort((a, b) => {
+        const orderA = statusOrder[a.status] || 0;
+        const orderB = statusOrder[b.status] || 0;
+
+        if (sortByStatus === 'asc') {
+          return orderA - orderB;
+        } else {
+          return orderB - orderA;
+        }
+      })
+    }));
+  };
 
   async function loadCommitments() {
     try {
@@ -1123,7 +1160,7 @@ export function Payments() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {projectSupplierGroups
+                  {getSortedGroups()
                     .filter((g) => g.project_id === selectedProject)
                     .map((group) => {
                       const groupKey = `${group.project_id}-${group.supplier_id}`;
@@ -1200,7 +1237,17 @@ export function Payments() {
                                           <th className="px-4 py-2 text-left">Hito</th>
                                           <th className="px-4 py-2 text-left">Fecha Planificada</th>
                                           <th className="px-4 py-2 text-right">Monto</th>
-                                          <th className="px-4 py-2 text-center">Estado</th>
+                                          <th className="px-4 py-2 text-center">
+                                            <button
+                                              onClick={handleSortByStatus}
+                                              className="flex items-center justify-center gap-1 w-full hover:text-gray-800 transition"
+                                            >
+                                              Estado
+                                              {sortByStatus === null && <ArrowUpDown size={14} />}
+                                              {sortByStatus === 'asc' && <ArrowUp size={14} />}
+                                              {sortByStatus === 'desc' && <ArrowDown size={14} />}
+                                            </button>
+                                          </th>
                                           <th className="px-4 py-2 text-center">Comprobante</th>
                                         </tr>
                                       </thead>
