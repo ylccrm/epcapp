@@ -1,5 +1,21 @@
 import { useEffect, useState } from 'react';
-import { FileText, Camera, Paperclip, Image as ImageIcon, Video, Eye, Plus } from 'lucide-react';
+import {
+  FileText,
+  Camera,
+  Image as ImageIcon,
+  Video,
+  Eye,
+  Plus,
+  TrendingUp,
+  Clock,
+  CheckCircle2,
+  Circle,
+  Download,
+  Upload,
+  ChevronDown,
+  ChevronRight,
+  Sparkles,
+} from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { UploadMilestoneEvidenceModal } from '../../Modals/UploadMilestoneEvidenceModal';
 import { CreateMilestoneModal } from '../../Modals/CreateMilestoneModal';
@@ -17,12 +33,12 @@ interface ProgressTabProps {
 }
 
 const STANDARD_MILESTONES = [
-  { name: '1. Ingeniería y Diseños', defaultSubcontractor: 'Ingeniería & Diseños S.A.S' },
-  { name: '2. Instalación de Estructura', defaultSubcontractor: 'Equipo Alpha' },
-  { name: '3. Líneas de Vida (HSE)', defaultSubcontractor: 'Seguridad Alturas Ltda' },
-  { name: '4. Instalación Bandejería', defaultSubcontractor: 'Montajes del Norte' },
-  { name: '5. Instalación Cableado DC/AC', defaultSubcontractor: 'Montajes del Norte' },
-  { name: '6. Instalación Paneles Solares', defaultSubcontractor: 'Equipo Alpha' },
+  { name: '1. Ingenieria y Disenos', defaultSubcontractor: 'Ingenieria & Disenos S.A.S' },
+  { name: '2. Instalacion de Estructura', defaultSubcontractor: 'Equipo Alpha' },
+  { name: '3. Lineas de Vida (HSE)', defaultSubcontractor: 'Seguridad Alturas Ltda' },
+  { name: '4. Instalacion Bandejeria', defaultSubcontractor: 'Montajes del Norte' },
+  { name: '5. Instalacion Cableado DC/AC', defaultSubcontractor: 'Montajes del Norte' },
+  { name: '6. Instalacion Paneles Solares', defaultSubcontractor: 'Equipo Alpha' },
   { name: '7. Apantallamiento (Pararrayos)', defaultSubcontractor: 'Montajes del Norte' },
 ];
 
@@ -33,7 +49,7 @@ export function ProgressTab({ projectId }: ProgressTabProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMilestone, setSelectedMilestone] = useState<MilestoneWithEvidence | null>(null);
   const [evidenceByMilestone, setEvidenceByMilestone] = useState<Record<string, Evidence[]>>({});
-  const [showEvidenceFor, setShowEvidenceFor] = useState<string | null>(null);
+  const [expandedMilestones, setExpandedMilestones] = useState<Set<string>>(new Set());
   const [isCreateMilestoneModalOpen, setIsCreateMilestoneModalOpen] = useState(false);
 
   useEffect(() => {
@@ -129,21 +145,23 @@ export function ProgressTab({ projectId }: ProgressTabProps) {
     }
   }
 
-  function toggleEvidenceView(milestoneId: string) {
-    if (showEvidenceFor === milestoneId) {
-      setShowEvidenceFor(null);
+  function toggleMilestone(milestoneId: string) {
+    const newExpanded = new Set(expandedMilestones);
+    if (newExpanded.has(milestoneId)) {
+      newExpanded.delete(milestoneId);
     } else {
-      setShowEvidenceFor(milestoneId);
+      newExpanded.add(milestoneId);
       if (!evidenceByMilestone[milestoneId]) {
         loadMilestoneEvidence(milestoneId);
       }
     }
+    setExpandedMilestones(newExpanded);
   }
 
   function getEvidenceIcon(fileType: string) {
-    if (fileType === 'photo') return <ImageIcon size={14} />;
-    if (fileType === 'video') return <Video size={14} />;
-    return <FileText size={14} />;
+    if (fileType === 'image' || fileType === 'photo') return ImageIcon;
+    if (fileType === 'video') return Video;
+    return FileText;
   }
 
   function handleEvidenceUploadSuccess() {
@@ -200,157 +218,308 @@ export function ProgressTab({ projectId }: ProgressTabProps) {
     }
   }
 
+  const completedMilestones = milestones.filter(m => m.progress_percentage === 100).length;
+  const inProgressMilestones = milestones.filter(m => m.progress_percentage > 0 && m.progress_percentage < 100).length;
+  const pendingMilestones = milestones.filter(m => m.progress_percentage === 0).length;
+
   if (loading) {
-    return <div className="text-center py-12 text-gray-500">Cargando hitos...</div>;
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="w-12 h-12 border-3 border-mac-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   return (
-    <div>
-      <div className="bg-slate-900 rounded-xl p-6 text-white mb-6 flex justify-between items-center relative overflow-hidden">
-        <div className="relative z-10">
-          <h3 className="text-lg font-semibold text-slate-200">Avance Físico Total</h3>
-          <p className="text-xs text-slate-400">Promedio ponderado de hitos instalados</p>
-          <h2 className="text-4xl font-bold mt-2 text-yellow-400">{totalProgress}%</h2>
-        </div>
-        <div className="relative z-10 text-right">
-          <button className="bg-yellow-500 hover:bg-yellow-600 text-slate-900 text-sm font-bold px-4 py-2 rounded shadow-lg transition flex items-center gap-2">
-            <FileText size={16} />
-            Reporte Avance
-          </button>
-        </div>
-        <div className="absolute right-0 top-0 h-full w-64 bg-gradient-to-l from-slate-800 to-transparent opacity-50"></div>
-      </div>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 mac-card p-8 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-mac-blue-500/10 to-transparent rounded-full blur-3xl"></div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-          <h3 className="font-bold text-slate-700">Control de Hitos de Obra</h3>
+          <div className="relative z-10">
+            <div className="flex items-start justify-between mb-6">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-10 h-10 rounded-xl bg-mac-blue-500 flex items-center justify-center">
+                    <TrendingUp size={20} className="text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-mac-gray-900">Avance Fisico Total</h2>
+                    <p className="text-xs text-mac-gray-500">Promedio de hitos completados</p>
+                  </div>
+                </div>
+              </div>
+
+              <button className="mac-button mac-button-secondary text-sm flex items-center gap-2">
+                <FileText size={16} />
+                Generar Reporte
+              </button>
+            </div>
+
+            <div className="flex items-end gap-8">
+              <div className="flex-1">
+                <div className="flex items-baseline gap-2 mb-4">
+                  <h3 className="text-6xl font-semibold text-mac-blue-500">{totalProgress}</h3>
+                  <span className="text-3xl font-medium text-mac-gray-400">%</span>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="mac-progress-bar h-3">
+                    <div
+                      className="mac-progress-bar-fill bg-gradient-to-r from-mac-blue-500 to-mac-blue-400 relative overflow-hidden"
+                      style={{ width: `${totalProgress}%` }}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-mac-gray-500">
+                    <span>Inicio</span>
+                    <span>Completado</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="relative w-32 h-32">
+                <svg className="w-full h-full transform -rotate-90">
+                  <circle
+                    cx="64"
+                    cy="64"
+                    r="56"
+                    stroke="currentColor"
+                    strokeWidth="8"
+                    fill="none"
+                    className="text-mac-gray-200"
+                  />
+                  <circle
+                    cx="64"
+                    cy="64"
+                    r="56"
+                    stroke="currentColor"
+                    strokeWidth="8"
+                    fill="none"
+                    strokeDasharray={`${2 * Math.PI * 56}`}
+                    strokeDashoffset={`${2 * Math.PI * 56 * (1 - totalProgress / 100)}`}
+                    className="text-mac-blue-500 transition-all duration-1000"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-mac-gray-900">{totalProgress}%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mac-card p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <Sparkles size={16} className="text-emerald-500" />
+            </div>
+            <h3 className="font-semibold text-mac-gray-900">Resumen</h3>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-50 border border-emerald-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-emerald-500 flex items-center justify-center">
+                  <CheckCircle2 size={18} className="text-white" />
+                </div>
+                <div>
+                  <p className="text-xs text-emerald-600 font-medium">Completados</p>
+                  <p className="text-2xl font-bold text-emerald-700">{completedMilestones}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded-xl bg-mac-blue-50 border border-mac-blue-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-mac-blue-500 flex items-center justify-center">
+                  <Clock size={18} className="text-white" />
+                </div>
+                <div>
+                  <p className="text-xs text-mac-blue-600 font-medium">En Progreso</p>
+                  <p className="text-2xl font-bold text-mac-blue-700">{inProgressMilestones}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded-xl bg-mac-gray-100 border border-mac-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-mac-gray-400 flex items-center justify-center">
+                  <Circle size={18} className="text-white" />
+                </div>
+                <div>
+                  <p className="text-xs text-mac-gray-600 font-medium">Pendientes</p>
+                  <p className="text-2xl font-bold text-mac-gray-700">{pendingMilestones}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <button
             onClick={() => setIsCreateMilestoneModalOpen(true)}
-            className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm font-medium"
+            className="w-full mt-6 mac-button mac-button-primary text-sm flex items-center justify-center gap-2"
           >
             <Plus size={16} />
             Nuevo Hito
           </button>
         </div>
-        <div className="divide-y divide-gray-100">
-          {milestones.map((milestone) => (
-            <div key={milestone.id} className="p-4 hover:bg-gray-50 transition">
-              <div className="flex flex-wrap items-center justify-between gap-4 mb-2">
-                <div className="w-full md:w-1/3">
-                  <h4 className="font-bold text-slate-800 text-sm">{milestone.name}</h4>
-                  <input
-                    type="text"
-                    value={milestone.subcontractor_name || ''}
-                    onChange={(e) => updateSubcontractor(milestone.id, e.target.value)}
-                    placeholder="Subcontratista"
-                    className="mt-1 text-xs border border-gray-300 rounded px-2 py-1 bg-white w-full focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                  />
-                </div>
-                <div className="w-full md:w-1/3 flex items-center gap-3">
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={milestone.progress_percentage}
-                    onChange={(e) => updateMilestoneProgress(milestone.id, parseInt(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-yellow-500"
-                  />
-                  <span className="text-sm font-bold w-12 text-right">
-                    {milestone.progress_percentage}%
-                  </span>
-                </div>
-                <div className="w-full md:w-auto flex gap-2">
-                  {milestone.progress_percentage > 0 ? (
-                    <>
-                      <button
-                        onClick={() => {
-                          setSelectedMilestone(milestone);
-                          setIsModalOpen(true);
-                        }}
-                        className="text-xs bg-blue-50 border border-blue-100 text-blue-600 px-3 py-1.5 rounded flex items-center gap-1 hover:bg-blue-100 transition"
-                      >
-                        <Camera size={12} />
-                        Subir
-                      </button>
-                      {milestone.evidence_count > 0 && (
-                        <button
-                          onClick={() => toggleEvidenceView(milestone.id)}
-                          className="text-xs bg-green-50 border border-green-100 text-green-600 px-3 py-1.5 rounded flex items-center gap-1 hover:bg-green-100 transition"
-                        >
-                          <Eye size={12} />
-                          Ver ({milestone.evidence_count})
-                        </button>
+      </div>
+
+      <div className="mac-card">
+        <div className="p-5 border-b border-mac-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-mac-blue-50 flex items-center justify-center">
+              <CheckCircle2 size={16} className="text-mac-blue-500" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-mac-gray-900">Hitos del Proyecto</h3>
+              <p className="text-xs text-mac-gray-500">{milestones.length} hitos totales</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="divide-y divide-mac-gray-100">
+          {milestones.map((milestone) => {
+            const isExpanded = expandedMilestones.has(milestone.id);
+            const progress = milestone.progress_percentage;
+            const statusColor = progress === 100 ? 'emerald' : progress > 0 ? 'blue' : 'gray';
+
+            return (
+              <div key={milestone.id} className="hover:bg-mac-gray-50/50 transition-colors">
+                <div className="p-5">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className={`w-12 h-12 rounded-xl bg-${statusColor}-50 border border-${statusColor}-100 flex items-center justify-center shrink-0`}>
+                      {progress === 100 ? (
+                        <CheckCircle2 size={20} className={`text-${statusColor}-500`} />
+                      ) : progress > 0 ? (
+                        <Clock size={20} className={`text-${statusColor}-500`} />
+                      ) : (
+                        <Circle size={20} className={`text-${statusColor}-400`} />
                       )}
-                    </>
-                  ) : (
-                    <button className="text-xs bg-gray-100 text-gray-400 px-3 py-1.5 rounded cursor-not-allowed">
-                      Pendiente
-                    </button>
-                  )}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-semibold text-mac-gray-900 text-sm">{milestone.name}</h4>
+                        <span className={`mac-badge mac-badge-${statusColor} text-xs`}>
+                          {progress}%
+                        </span>
+                      </div>
+
+                      <input
+                        type="text"
+                        value={milestone.subcontractor_name || ''}
+                        onChange={(e) => updateSubcontractor(milestone.id, e.target.value)}
+                        placeholder="Subcontratista"
+                        className="mac-input text-xs py-1.5 max-w-xs"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      {progress > 0 && (
+                        <>
+                          <button
+                            onClick={() => {
+                              setSelectedMilestone(milestone);
+                              setIsModalOpen(true);
+                            }}
+                            className="p-2 rounded-lg bg-mac-blue-50 text-mac-blue-600 hover:bg-mac-blue-100 transition"
+                            title="Subir evidencia"
+                          >
+                            <Upload size={16} />
+                          </button>
+
+                          {milestone.evidence_count > 0 && (
+                            <button
+                              onClick={() => toggleMilestone(milestone.id)}
+                              className="px-3 py-2 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition flex items-center gap-1.5 text-xs font-medium"
+                            >
+                              {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                              {milestone.evidence_count} evidencias
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          step="5"
+                          value={progress}
+                          onChange={(e) => updateMilestoneProgress(milestone.id, parseInt(e.target.value))}
+                          className="flex-1 h-2 bg-mac-gray-200 rounded-full appearance-none cursor-pointer accent-mac-blue-500"
+                        />
+                        <span className="text-sm font-semibold text-mac-gray-900 w-12 text-right">
+                          {progress}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              {showEvidenceFor === milestone.id && (
-                <div className="mt-4 pt-4 border-t border-gray-200 bg-gray-50 -mx-4 px-4 pb-4">
-                  <h5 className="text-xs font-semibold text-gray-600 uppercase mb-4 pt-2">
-                    Evidencias Adjuntas ({evidenceByMilestone[milestone.id]?.length || 0})
-                  </h5>
-                  {evidenceByMilestone[milestone.id] ? (
-                    <div className="relative pt-2">
-                      <div className="absolute left-6 top-2 bottom-0 w-0.5 bg-blue-200"></div>
+                {isExpanded && (
+                  <div className="px-5 pb-5 pt-2 bg-mac-gray-50 border-t border-mac-gray-100">
+                    <div className="bg-white rounded-xl border border-mac-gray-200 p-5">
+                      <h5 className="text-sm font-semibold text-mac-gray-900 mb-4 flex items-center gap-2">
+                        <Camera size={16} className="text-mac-blue-500" />
+                        Evidencias Adjuntas ({evidenceByMilestone[milestone.id]?.length || 0})
+                      </h5>
 
-                      <div className="space-y-4">
-                        {evidenceByMilestone[milestone.id].map((evidence, index) => {
-                          const date = new Date(evidence.created_at);
-                          const showDateHeader = index === 0 ||
-                            new Date(evidenceByMilestone[milestone.id][index - 1].created_at).toDateString() !== date.toDateString();
+                      {evidenceByMilestone[milestone.id] ? (
+                        <div className="space-y-3">
+                          {evidenceByMilestone[milestone.id].map((evidence) => {
+                            const EvidenceIcon = getEvidenceIcon(evidence.file_type);
+                            const date = new Date(evidence.created_at);
 
-                          return (
-                            <div key={evidence.id}>
-                              {showDateHeader && (
-                                <div className="flex items-center gap-2 mb-3">
-                                  <div className="text-xs font-semibold text-gray-700 bg-white px-3 py-1 rounded-full border border-gray-300">
-                                    {date.toLocaleDateString('es-ES', {
-                                      weekday: 'short',
-                                      year: 'numeric',
-                                      month: 'short',
-                                      day: 'numeric'
-                                    })}
-                                  </div>
-                                  <div className="flex-1 h-px bg-gray-300"></div>
-                                </div>
-                              )}
-
-                              <div className="flex gap-3 relative">
-                                <div className="relative z-10 flex-shrink-0 w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white shadow-md">
-                                  {getEvidenceIcon(evidence.file_type)}
+                            return (
+                              <div
+                                key={evidence.id}
+                                className="flex items-start gap-3 p-4 rounded-xl bg-mac-gray-50 hover:bg-mac-blue-50/50 transition-colors border border-mac-gray-200"
+                              >
+                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+                                  evidence.file_type === 'image' || evidence.file_type === 'photo' ? 'bg-emerald-100 text-emerald-600' :
+                                  evidence.file_type === 'video' ? 'bg-purple-100 text-purple-600' :
+                                  'bg-mac-blue-100 text-mac-blue-600'
+                                }`}>
+                                  <EvidenceIcon size={18} />
                                 </div>
 
-                                <div className="flex-1 bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition">
-                                  <div className="flex items-start justify-between gap-3 mb-2">
-                                    <div className="flex-1">
-                                      <p className="text-sm font-semibold text-slate-800 mb-1">
-                                        {evidence.file_name}
-                                      </p>
-                                      <p className="text-xs text-gray-500">
-                                        {date.toLocaleTimeString('es-ES', {
-                                          hour: '2-digit',
-                                          minute: '2-digit'
-                                        })}
-                                      </p>
-                                    </div>
-                                    <span className={`text-xs px-2 py-1 rounded font-medium ${
-                                      evidence.file_type === 'image' ? 'bg-green-100 text-green-700' :
-                                      evidence.file_type === 'video' ? 'bg-purple-100 text-purple-700' :
-                                      evidence.file_type === 'pdf' ? 'bg-red-100 text-red-700' :
-                                      'bg-gray-100 text-gray-700'
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between gap-2 mb-1">
+                                    <p className="font-medium text-sm text-mac-gray-900 truncate">
+                                      {evidence.file_name}
+                                    </p>
+                                    <span className={`mac-badge text-[10px] shrink-0 ${
+                                      evidence.file_type === 'image' || evidence.file_type === 'photo' ? 'mac-badge-green' :
+                                      evidence.file_type === 'video' ? 'bg-purple-100 text-purple-600' :
+                                      'mac-badge-blue'
                                     }`}>
-                                      {evidence.file_type?.toUpperCase() || 'FILE'}
+                                      {evidence.file_type?.toUpperCase()}
                                     </span>
                                   </div>
 
+                                  <p className="text-xs text-mac-gray-500 mb-2">
+                                    {date.toLocaleDateString('es-ES', {
+                                      year: 'numeric',
+                                      month: 'short',
+                                      day: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </p>
+
                                   {evidence.description && (
-                                    <p className="text-sm text-gray-700 mb-3 border-l-2 border-blue-200 pl-3">
+                                    <p className="text-xs text-mac-gray-700 mb-3 p-2 bg-white rounded-lg border-l-2 border-mac-blue-500">
                                       {evidence.description}
                                     </p>
                                   )}
@@ -360,36 +529,37 @@ export function ProgressTab({ projectId }: ProgressTabProps) {
                                       href={evidence.file_url}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="text-xs text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded font-medium flex items-center gap-2 transition shadow-sm"
+                                      className="px-3 py-1.5 rounded-lg bg-mac-blue-500 text-white hover:bg-mac-blue-600 transition text-xs font-medium flex items-center gap-1.5"
                                     >
-                                      <Eye size={14} />
-                                      Ver Archivo
+                                      <Eye size={12} />
+                                      Ver
                                     </a>
                                     <a
                                       href={evidence.file_url}
                                       download
-                                      className="text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded font-medium flex items-center gap-2 transition border border-blue-200"
+                                      className="px-3 py-1.5 rounded-lg bg-white border border-mac-gray-200 text-mac-gray-700 hover:bg-mac-gray-50 transition text-xs font-medium flex items-center gap-1.5"
                                     >
-                                      <FileText size={14} />
+                                      <Download size={12} />
                                       Descargar
                                     </a>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <div className="w-12 h-12 border-2 border-mac-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                          <p className="text-sm text-mac-gray-500">Cargando evidencias...</p>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-400 text-sm">
-                      Cargando evidencias...
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
