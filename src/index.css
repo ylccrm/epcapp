@@ -3,20 +3,132 @@
 @tailwind utilities;
 
 :root {
-  --bg-sidebar: #0f172a;
-  --bg-sidebar-header: #020617;
-  --bg-sidebar-hover: #1e293b;
-  --accent-green-500: #10b981;
-  --accent-green-600: #059669;
-  --text-sidebar: #cbd5e1;
-  --text-sidebar-active: #0f172a;
-  --border-sidebar: rgba(255, 255, 255, 0.1);
+  --mac-blue-50: #EBF5FF;
+  --mac-blue-100: #D6EBFF;
+  --mac-blue-200: #ADD6FF;
+  --mac-blue-300: #85C2FF;
+  --mac-blue-400: #5CADFF;
+  --mac-blue-500: #007AFF;
+  --mac-blue-600: #0066D6;
+  --mac-blue-700: #0052AD;
+  --mac-blue-800: #003D85;
+  --mac-blue-900: #00295C;
+
+  --mac-gray-50: #F5F5F7;
+  --mac-gray-100: #E8E8ED;
+  --mac-gray-200: #D2D2D7;
+  --mac-gray-300: #AEAEB2;
+  --mac-gray-400: #8E8E93;
+  --mac-gray-500: #636366;
+  --mac-gray-600: #48484A;
+  --mac-gray-700: #3A3A3C;
+  --mac-gray-800: #2C2C2E;
+  --mac-gray-900: #1C1C1E;
+
+  --bg-sidebar: #1C1C1E;
+  --bg-sidebar-header: #2C2C2E;
+  --bg-sidebar-hover: #3A3A3C;
+  --accent-blue: #007AFF;
+  --accent-blue-light: #5CADFF;
+  --text-sidebar: #AEAEB2;
+  --text-sidebar-active: #FFFFFF;
+  --border-sidebar: rgba(255, 255, 255, 0.08);
+}
+
+@layer base {
+  body {
+    @apply bg-mac-gray-50 text-mac-gray-900 antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+  }
+
+  * {
+    @apply border-mac-gray-200;
+  }
+}
+
+@layer components {
+  .mac-card {
+    @apply bg-white rounded-mac-lg shadow-mac border border-mac-gray-100;
+  }
+
+  .mac-button {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200;
+  }
+
+  .mac-button-primary {
+    @apply bg-mac-blue-500 text-white hover:bg-mac-blue-600 active:bg-mac-blue-700;
+  }
+
+  .mac-button-secondary {
+    @apply bg-mac-gray-100 text-mac-gray-700 hover:bg-mac-gray-200 active:bg-mac-gray-300;
+  }
+
+  .mac-input {
+    @apply w-full px-3 py-2 rounded-lg border border-mac-gray-200 bg-white
+           focus:border-mac-blue-500 focus:ring-2 focus:ring-mac-blue-100
+           outline-none transition-all duration-200;
+  }
+
+  .mac-select {
+    @apply px-3 py-2 rounded-lg border border-mac-gray-200 bg-white
+           focus:border-mac-blue-500 focus:ring-2 focus:ring-mac-blue-100
+           outline-none transition-all duration-200 cursor-pointer;
+  }
+
+  .mac-badge {
+    @apply px-2.5 py-1 rounded-full text-xs font-medium;
+  }
+
+  .mac-badge-blue {
+    @apply bg-mac-blue-50 text-mac-blue-600;
+  }
+
+  .mac-badge-green {
+    @apply bg-emerald-50 text-emerald-600;
+  }
+
+  .mac-badge-yellow {
+    @apply bg-amber-50 text-amber-600;
+  }
+
+  .mac-badge-orange {
+    @apply bg-orange-50 text-orange-600;
+  }
+
+  .mac-badge-gray {
+    @apply bg-mac-gray-100 text-mac-gray-600;
+  }
+
+  .mac-table {
+    @apply w-full;
+  }
+
+  .mac-table th {
+    @apply px-4 py-3 text-left text-xs font-semibold text-mac-gray-500 uppercase tracking-wider bg-mac-gray-50;
+  }
+
+  .mac-table td {
+    @apply px-4 py-3 text-sm text-mac-gray-700;
+  }
+
+  .mac-table tbody tr {
+    @apply border-b border-mac-gray-100 hover:bg-mac-blue-50/30 transition-colors;
+  }
+
+  .mac-progress-bar {
+    @apply h-2 bg-mac-gray-200 rounded-full overflow-hidden;
+  }
+
+  .mac-progress-bar-fill {
+    @apply h-full bg-mac-blue-500 rounded-full transition-all duration-500;
+  }
 }
 
 @layer utilities {
-  .shadow-glow-green {
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+  .shadow-glow-blue {
+    box-shadow: 0 0 20px rgba(0, 122, 255, 0.3);
   }
+
   @keyframes slide-in {
     from {
       transform: translateX(100%);
@@ -50,5 +162,18 @@
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+  }
+
+  @keyframes pulse-blue {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+
+  .animate-pulse-blue {
+    animation: pulse-blue 2s ease-in-out infinite;
   }
 }
