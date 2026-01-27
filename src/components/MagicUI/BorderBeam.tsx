@@ -4,6 +4,21 @@ interface BorderBeamProps {
   size?: number;
   duration?: number;
   anchor?: number;
+  borderWidth?: number;
+  colorFrom?: string;
+  colorTo?: string;
+  delay?: number;
+}
+
+export const BorderBeam = ({
+  size = 200,
+  duration = 15,
+  anchor = 90,
+  borderWidth = 1.5,
+  colorFrom = "#ffaa40",
+  colorTo = "#9c40ff",
+  delay = 0,
+}: BorderBeamProps) => {
   return (
     <div
       style={
