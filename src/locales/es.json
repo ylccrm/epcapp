@@ -1,0 +1,325 @@
+{
+  "sidebar": {
+    "dashboard": "Panel Principal",
+    "projects": "Proyectos",
+    "suppliers": "Proveedores",
+    "inventory": "Inventario",
+    "payments": "Pagos",
+    "users": "Usuarios",
+    "settings": "Configuración",
+    "logout": "Cerrar Sesión",
+    "sections": {
+      "management": "Gestión",
+      "admin": "Admin"
+    },
+    "collapse": "Colapsar",
+    "expand": "Expandir"
+  },
+  "header": {
+    "dashboard": "Panel de Control",
+    "projects": "Cartera de Proyectos",
+    "inventory": "Almacén Central",
+    "payments": "Control de Pagos",
+    "suppliers": "Gestión de Proveedores",
+    "users": "Gestión de Usuarios",
+    "settings": "Configuración",
+    "projectDetail": "Gestión de Proyecto",
+    "default": "SolarEPC"
+  },
+  "roles": {
+    "admin": "Super Admin",
+    "supervisor": "Supervisor",
+    "installer": "Instalador"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "user": "Usuario",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "view": "Ver",
+    "search": "Buscar...",
+    "page": "Página {{current}} de {{total}}",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "actions": "Acciones",
+    "date": "Fecha"
+  },
+  "settings": {
+    "title": "Configuración",
+    "language": "Idioma",
+    "selectLanguage": "Seleccionar Idioma",
+    "english": "Inglés",
+    "spanish": "Español"
+  },
+  "dashboard": {
+    "cashFlowMonth": "Flujo de Caja (Mes)",
+    "pendingPayments": "Pagos Pendientes",
+    "activeProjects": "Proyectos Activos",
+    "recentExecution": "Proyectos en Ejecución Recientes",
+    "viewAll": "Ver todos",
+    "noProjects": "No hay proyectos en ejecución",
+    "expiringToday": "{{count}} Vencen hoy",
+    "table": {
+      "project": "Proyecto",
+      "client": "Cliente",
+      "phase": "Fase",
+      "budget": "Presupuesto"
+    }
+  },
+  "projects": {
+    "searchPlaceholder": "Buscar...",
+    "allStatuses": "Todos los estados",
+    "create": "Crear Proyecto",
+    "noFound": "No se encontraron proyectos",
+    "deleteConfirm": "¿Está seguro de que desea eliminar el proyecto \"{{name}}\"? Esta acción no se puede deshacer.",
+    "deleteSuccess": "Proyecto eliminado exitosamente",
+    "deleteError": "Error al eliminar el proyecto",
+    "viewDetails": "Ver detalles",
+    "delete": "Eliminar proyecto",
+    "noLocation": "Sin ubicación",
+    "pageInfo": "Página {{current}} de {{total}}",
+    "status": {
+      "draft": "Borrador",
+      "execution": "Ejecución",
+      "finished": "Finalizada"
+    },
+    "table": {
+      "project": "Proyecto",
+      "client": "Cliente",
+      "location": "Ubicación",
+      "status": "Estado",
+      "progress": "Progreso",
+      "actions": "Acciones"
+    },
+    "createModal": {
+      "title": "Crear Nuevo Proyecto",
+      "name": "Nombre del Proyecto",
+      "client": "Cliente",
+      "type": "Tipo de Proyecto",
+      "capacity": "Capacidad Instalada",
+      "installationType": "Tipo Instalación",
+      "location": "Ubicación",
+      "budget": "Presupuesto",
+      "currencyConfig": "Configuración de Moneda",
+      "country": "País",
+      "currency": "Moneda",
+      "rateToUSD": "Tasa a USD",
+      "startDate": "Inicio",
+      "endDate": "Fin Programado",
+      "creating": "Creando...",
+      "create": "Crear Proyecto",
+      "cancel": "Cancelar",
+      "errorMissingfields": "Por favor complete todos los campos obligatorios",
+      "errorDatabase": "Error de base de datos: {{message}}",
+      "errorCreatingMilestones": "Error al crear hitos: {{message}}",
+      "errorGeneric": "Error al crear el proyecto. Por favor intente de nuevo.",
+      "errorPermissions": "Error de permisos. Verifica que estés autenticado.",
+      "errorDuplicate": "Ya existe un proyecto con ese nombre.",
+      "placeholderName": "Ej: Granja Solar Del Sur",
+      "placeholderClient": "Nombre Cliente",
+      "placeholderLocation": "Ciudad/Sitio"
+    }
+  },
+  "projectDetail": {
+    "tabs": {
+      "progress": "Ejecución & Avance",
+      "payments": "Pagos & Contratos",
+      "materials": "Inventario & Compras",
+      "equipment": "Equipos",
+      "crews": "Cuadrillas",
+      "docs": "Documentación"
+    },
+    "backToProjects": "Volver a Proyectos",
+    "client": "Cliente",
+    "location": "Ubicación",
+    "notSpecified": "Sin especificar",
+    "share": "Compartir",
+    "totalBudget": "Presupuesto Total",
+    "loading": "Cargando proyecto...",
+    "notFound": "Proyecto no encontrado",
+    "errorStatusUpdate": "Error al actualizar el estado del proyecto"
+  },
+  "inventory": {
+    "categories": "Categorías",
+    "all": "Todas",
+    "mainWarehouse": "Stock en Bodega Principal",
+    "entry": "Entrada",
+    "loading": "Cargando inventario...",
+    "noItems": "No hay items en esta categoría",
+    "categoryLabels": {
+      "panels": "Paneles",
+      "inverters": "Inversores",
+      "electrical": "Eléctrico"
+    },
+    "status": {
+      "outOfStock": "Agotado",
+      "lowStock": "Bajo Stock",
+      "mediumStock": "Stock Medio",
+      "ok": "OK"
+    },
+    "table": {
+      "product": "Producto",
+      "supplier": "Proveedor",
+      "available": "Disponible",
+      "location": "Ubicación",
+      "unitValue": "Valor Unit.",
+      "status": "Estado"
+    },
+    "entryModal": {
+      "title": "Entrada de Inventario",
+      "product": "Producto *",
+      "quantity": "Cantidad Recibida *",
+      "date": "Fecha de Recepción *",
+      "provider": "Proveedor",
+      "reference": "No. de Orden de Compra",
+      "batch": "Lote/Batch",
+      "notes": "Notas de Calidad",
+      "selectProduct": "Seleccionar producto...",
+      "selectProvider": "Seleccionar proveedor (opcional)...",
+      "cancel": "Cancelar",
+      "register": "Registrar Entrada",
+      "registering": "Registrando...",
+      "success": "Entrada registrada exitosamente",
+      "errorSelectProduct": "Por favor seleccione un producto",
+      "errorQuantity": "La cantidad debe ser mayor a 0",
+      "errorDate": "La fecha de recepción no puede ser futura",
+      "errorGeneric": "Error al registrar la entrada. Por favor intente de nuevo."
+    }
+  },
+  "payments": {
+    "title": "Control de Pagos",
+    "subtitle": "Gestion de compromisos y pagos a proveedores",
+    "cards": {
+      "committed": "Comprometido",
+      "paid": "Pagado",
+      "pending": "Pendiente",
+      "overdue": "Vencidos",
+      "committedDesc": "Total en ordenes de compra",
+      "pendingDesc": "Por pagar a proveedores",
+      "overdueDesc": "Pagos en mora"
+    },
+    "milestonesTitle": "Hitos de Pago",
+    "milestonesSubtitle": "Control de pagos por proveedor",
+    "allProjects": "Todos los proyectos",
+    "loading": "Cargando datos...",
+    "noMilestones": "No hay hitos de pago",
+    "noMilestonesDesc": "No se encontraron compromisos para el filtro seleccionado",
+    "in": "en",
+    "milestonesCount": "{{count}} hitos",
+    "progress": "Avance",
+    "supplierDebtTitle": "Deuda por Proveedor",
+    "supplierDebtDesc": "Resumen de pagos pendientes",
+    "total": "Total",
+    "update": "Actualizar",
+    "upload": "Subir",
+    "supplierTotal": "Total del Proveedor",
+    "table": {
+      "milestone": "Hito",
+      "date": "Fecha",
+      "amount": "Monto",
+      "status": "Estado",
+      "receipt": "Comprobante"
+    },
+    "status": {
+      "pending": "Pendiente",
+      "completed": "Cumplido",
+      "paid": "Pagado"
+    }
+  },
+  "suppliers": {
+    "title": "Gestión de Proveedores",
+    "found_one": "{{count}} proveedor encontrado",
+    "found_other": "{{count}} proveedores encontrados",
+    "new": "Nuevo Proveedor",
+    "searchPlaceholder": "Buscar por nombre, contacto o email...",
+    "allCategories": "Todas las Categorías",
+    "allStatuses": "Todos los Estados",
+    "active": "Activos",
+    "inactive": "Inactivos",
+    "noFound": "No se encontraron proveedores",
+    "adjustFilters": "Intenta ajustar los filtros de búsqueda",
+    "startAdding": "Comienza agregando tu primer proveedor",
+    "category": "Categoría",
+    "paymentTerms": "Términos de Pago",
+    "deleteConfirm": "¿Está seguro de eliminar al proveedor \"{{name}}\"?",
+    "deleteError": "Error al eliminar el proveedor",
+    "saveError": "Error al guardar el proveedor",
+    "loading": "Cargando proveedores...",
+    "modal": {
+      "editTitle": "Editar Proveedor",
+      "newTitle": "Nuevo Proveedor",
+      "name": "Nombre del Proveedor *",
+      "contactPerson": "Persona de Contacto",
+      "category": "Categoría",
+      "email": "Email",
+      "phone": "Teléfono",
+      "taxId": "NIT/RUT",
+      "paymentTerms": "Términos de Pago",
+      "address": "Dirección",
+      "rating": "Calificación (1-5)",
+      "status": "Estado",
+      "notes": "Notas Adicionales",
+      "save": "Guardar",
+      "updating": "Actualizando...",
+      "creating": "Creando..."
+    },
+    "categories": {
+      "General": "General",
+      "Paneles Solares": "Paneles Solares",
+      "Inversores": "Inversores",
+      "Eléctrico": "Eléctrico",
+      "Estructuras": "Estructuras",
+      "HSE": "HSE",
+      "Instalación": "Instalación"
+    },
+    "rating": {
+      "veryLow": "1 - Muy Bajo",
+      "low": "2 - Bajo",
+      "regular": "3 - Regular",
+      "good": "4 - Bueno",
+      "excellent": "5 - Excelente"
+    }
+  },
+  "users": {
+    "title": "Gestión de Usuarios",
+    "subtitle": "Administra los usuarios del sistema y sus roles",
+    "searchPlaceholder": "Buscar por nombre o email...",
+    "allRoles": "Todos los roles",
+    "loading": "Cargando usuarios...",
+    "noFound": "No se encontraron usuarios",
+    "noName": "Sin nombre",
+    "noEmail": "Sin email",
+    "roles": {
+      "admin": "Super Administrador",
+      "supervisor": "Supervisor",
+      "installer": "Instalador"
+    },
+    "table": {
+      "user": "Usuario",
+      "email": "Email",
+      "role": "Rol",
+      "phone": "Teléfono",
+      "registered": "Fecha de Registro",
+      "actions": "Acciones"
+    },
+    "editModal": {
+      "title": "Editar Usuario",
+      "name": "Nombre Completo",
+      "email": "Email",
+      "emailNote": "Este campo es informativo y no cambia el email de autenticación",
+      "phone": "Teléfono",
+      "role": "Rol del Usuario",
+      "roleNote": "Los instaladores solo ven sus proyectos asignados. Los supervisores pueden ver todos los proyectos.",
+      "adminNote": "Nota: Este es el super administrador del sistema. No puedes cambiar su rol.",
+      "cancel": "Cancelar",
+      "save": "Guardar Cambios",
+      "saving": "Guardando...",
+      "success": "Usuario actualizado correctamente",
+      "error": "Error al actualizar el usuario",
+      "errorAdmin": "Solo puede existir un super administrador en el sistema"
+    }
+  }
+}

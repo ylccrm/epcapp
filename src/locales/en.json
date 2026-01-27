@@ -1,0 +1,325 @@
+{
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "suppliers": "Suppliers",
+    "inventory": "Inventory",
+    "payments": "Payments",
+    "users": "Users",
+    "settings": "Settings",
+    "logout": "Logout",
+    "sections": {
+      "management": "Management",
+      "admin": "Admin"
+    },
+    "collapse": "Collapse",
+    "expand": "Expand"
+  },
+  "header": {
+    "dashboard": "Dashboard",
+    "projects": "Project Portfolio",
+    "inventory": "Central Warehouse",
+    "payments": "Payment Control",
+    "suppliers": "Supplier Management",
+    "users": "User Management",
+    "settings": "Settings",
+    "projectDetail": "Project Management",
+    "default": "SolarEPC"
+  },
+  "roles": {
+    "admin": "Super Admin",
+    "supervisor": "Supervisor",
+    "installer": "Installer"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "save": "Save",
+    "cancel": "Cancel",
+    "user": "User",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search...",
+    "page": "Page {{current}} of {{total}}",
+    "next": "Next",
+    "previous": "Previous",
+    "actions": "Actions",
+    "date": "Date"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "selectLanguage": "Select Language",
+    "english": "English",
+    "spanish": "Spanish"
+  },
+  "dashboard": {
+    "cashFlowMonth": "Cash Flow (Month)",
+    "pendingPayments": "Pending Payments",
+    "activeProjects": "Active Projects",
+    "recentExecution": "Recent Execution Projects",
+    "viewAll": "View All",
+    "noProjects": "No execution projects",
+    "expiringToday": "{{count}} Expiring today",
+    "table": {
+      "project": "Project",
+      "client": "Client",
+      "phase": "Phase",
+      "budget": "Budget"
+    }
+  },
+  "projects": {
+    "searchPlaceholder": "Search...",
+    "allStatuses": "All Statuses",
+    "create": "Create Project",
+    "noFound": "No projects found",
+    "deleteConfirm": "Are you sure you want to delete project \"{{name}}\"? This action cannot be undone.",
+    "deleteSuccess": "Project deleted successfully",
+    "deleteError": "Error deleting project",
+    "viewDetails": "View Details",
+    "delete": "Delete Project",
+    "noLocation": "No location",
+    "pageInfo": "Page {{current}} of {{total}}",
+    "status": {
+      "draft": "Draft",
+      "execution": "Execution",
+      "finished": "Finished"
+    },
+    "table": {
+      "project": "Project",
+      "client": "Client",
+      "location": "Location",
+      "status": "Status",
+      "progress": "Progress",
+      "actions": "Actions"
+    },
+    "createModal": {
+      "title": "Create New Project",
+      "name": "Project Name",
+      "client": "Client",
+      "type": "Project Type",
+      "capacity": "Installed Capacity",
+      "installationType": "Installation Type",
+      "location": "Location",
+      "budget": "Budget",
+      "currencyConfig": "Currency Configuration",
+      "country": "Country",
+      "currency": "Currency",
+      "rateToUSD": "Rate to USD",
+      "startDate": "Start Date",
+      "endDate": "Scheduled End",
+      "creating": "Creating...",
+      "create": "Create Project",
+      "cancel": "Cancel",
+      "errorMissingfields": "Please complete all required fields",
+      "errorDatabase": "Database error: {{message}}",
+      "errorCreatingMilestones": "Error creating milestones: {{message}}",
+      "errorGeneric": "Error creating project. Please try again.",
+      "errorPermissions": "Permission error. Verify you are authenticated.",
+      "errorDuplicate": "A project with that name already exists.",
+      "placeholderName": "Ex: Solar Farm South",
+      "placeholderClient": "Client Name",
+      "placeholderLocation": "City/Site"
+    }
+  },
+  "projectDetail": {
+    "tabs": {
+      "progress": "Execution & Progress",
+      "payments": "Payments & Contracts",
+      "materials": "Inventory & Procurement",
+      "equipment": "Equipment",
+      "crews": "Crews",
+      "docs": "Documentation"
+    },
+    "backToProjects": "Back to Projects",
+    "client": "Client",
+    "location": "Location",
+    "notSpecified": "Not specified",
+    "share": "Share",
+    "totalBudget": "Total Budget",
+    "loading": "Loading project...",
+    "notFound": "Project not found",
+    "errorStatusUpdate": "Error updating project status"
+  },
+  "inventory": {
+    "categories": "Categories",
+    "all": "All",
+    "mainWarehouse": "Main Warehouse Stock",
+    "entry": "Entry",
+    "loading": "Loading inventory...",
+    "noItems": "No items in this category",
+    "categoryLabels": {
+      "panels": "Panels",
+      "inverters": "Inverters",
+      "electrical": "Electrical"
+    },
+    "status": {
+      "outOfStock": "Out of Stock",
+      "lowStock": "Low Stock",
+      "mediumStock": "Medium Stock",
+      "ok": "OK"
+    },
+    "table": {
+      "product": "Product",
+      "supplier": "Supplier",
+      "available": "Available",
+      "location": "Location",
+      "unitValue": "Unit Value",
+      "status": "Status"
+    },
+    "entryModal": {
+      "title": "Inventory Entry",
+      "product": "Product *",
+      "quantity": "Received Quantity *",
+      "date": "Reception Date *",
+      "provider": "Provider",
+      "reference": "PO Number",
+      "batch": "Batch/Lot",
+      "notes": "Quality Notes",
+      "selectProduct": "Select product...",
+      "selectProvider": "Select provider (optional)...",
+      "cancel": "Cancel",
+      "register": "Register Entry",
+      "registering": "Registering...",
+      "success": "Entry registered successfully",
+      "errorSelectProduct": "Please select a product",
+      "errorQuantity": "Quantity must be greater than 0",
+      "errorDate": "Reception date cannot be in the future",
+      "errorGeneric": "Error registering entry. Please try again."
+    }
+  },
+  "payments": {
+    "title": "Payment Control",
+    "subtitle": "Management of commitments and supplier payments",
+    "cards": {
+      "committed": "Committed",
+      "paid": "Paid",
+      "pending": "Pending",
+      "overdue": "Overdue",
+      "committedDesc": "Total in purchase orders",
+      "pendingDesc": "To pay to suppliers",
+      "overdueDesc": "Overdue payments"
+    },
+    "milestonesTitle": "Payment Milestones",
+    "milestonesSubtitle": "Payment control by supplier",
+    "allProjects": "All Projects",
+    "loading": "Loading data...",
+    "noMilestones": "No payment milestones",
+    "noMilestonesDesc": "No commitments found for the selected filter",
+    "in": "in",
+    "milestonesCount": "{{count}} milestones",
+    "progress": "Progress",
+    "supplierDebtTitle": "Supplier Debt",
+    "supplierDebtDesc": "Pending payments summary",
+    "total": "Total",
+    "update": "Update",
+    "upload": "Upload",
+    "supplierTotal": "Supplier Total",
+    "table": {
+      "milestone": "Milestone",
+      "date": "Date",
+      "amount": "Amount",
+      "status": "Status",
+      "receipt": "Receipt"
+    },
+    "status": {
+      "pending": "Pending",
+      "completed": "Completed",
+      "paid": "Paid"
+    }
+  },
+  "suppliers": {
+    "title": "Supplier Management",
+    "found_one": "{{count}} supplier found",
+    "found_other": "{{count}} suppliers found",
+    "new": "New Supplier",
+    "searchPlaceholder": "Search by name, contact or email...",
+    "allCategories": "All Categories",
+    "allStatuses": "All Statuses",
+    "active": "Active",
+    "inactive": "Inactive",
+    "noFound": "No suppliers found",
+    "adjustFilters": "Try adjusting search filters",
+    "startAdding": "Start by adding your first supplier",
+    "category": "Category",
+    "paymentTerms": "Payment Terms",
+    "deleteConfirm": "Are you sure you want to delete supplier \"{{name}}\"?",
+    "deleteError": "Error deleting supplier",
+    "saveError": "Error saving supplier",
+    "loading": "Loading suppliers...",
+    "modal": {
+      "editTitle": "Edit Supplier",
+      "newTitle": "New Supplier",
+      "name": "Supplier Name *",
+      "contactPerson": "Contact Person",
+      "category": "Category",
+      "email": "Email",
+      "phone": "Phone",
+      "taxId": "Tax ID / VAT",
+      "paymentTerms": "Payment Terms",
+      "address": "Address",
+      "rating": "Rating (1-5)",
+      "status": "Status",
+      "notes": "Additional Notes",
+      "save": "Save",
+      "updating": "Updating...",
+      "creating": "Creating..."
+    },
+    "categories": {
+      "General": "General",
+      "Paneles Solares": "Solar Panels",
+      "Inversores": "Inverters",
+      "Eléctrico": "Electrical",
+      "Estructuras": "Structures",
+      "HSE": "HSE",
+      "Instalación": "Installation"
+    },
+    "rating": {
+      "veryLow": "1 - Very Low",
+      "low": "2 - Low",
+      "regular": "3 - Regular",
+      "good": "4 - Good",
+      "excellent": "5 - Excellent"
+    }
+  },
+  "users": {
+    "title": "User Management",
+    "subtitle": "Manage system users and roles",
+    "searchPlaceholder": "Search by name or email...",
+    "allRoles": "All roles",
+    "loading": "Loading users...",
+    "noFound": "No users found",
+    "noName": "No name",
+    "noEmail": "No email",
+    "roles": {
+      "admin": "Super Admin",
+      "supervisor": "Supervisor",
+      "installer": "Installer"
+    },
+    "table": {
+      "user": "User",
+      "email": "Email",
+      "role": "Role",
+      "phone": "Phone",
+      "registered": "Registration Date",
+      "actions": "Actions"
+    },
+    "editModal": {
+      "title": "Edit User",
+      "name": "Full Name",
+      "email": "Email",
+      "emailNote": "This field is informative and does not change authentication email",
+      "phone": "Phone",
+      "role": "User Role",
+      "roleNote": "Installers only see assigned projects. Supervisors can see all projects.",
+      "adminNote": "Note: This is the system super admin. You cannot change their role.",
+      "cancel": "Cancel",
+      "save": "Save Changes",
+      "saving": "Saving...",
+      "success": "User updated successfully",
+      "error": "Error updating user",
+      "errorAdmin": "Only one super administrator can exist in the system"
+    }
+  }
+}
