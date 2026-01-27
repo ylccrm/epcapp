@@ -4,6 +4,8 @@ import { supabase } from '../../lib/supabase';
 import { useCurrency } from '../../contexts/CurrencyContext';
 import type { Database } from '../../lib/database.types';
 
+import { BorderBeam } from '../MagicUI/BorderBeam';
+
 type Project = Database['public']['Tables']['projects']['Row'];
 
 interface DashboardProps {
@@ -37,12 +39,13 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     }
   }
 
-  const totalBudget = projects.reduce((sum, p) => sum + Number(p.total_budget_usd), 0);
+  // const totalBudget = projects.reduce((sum, p) => sum + Number(p.total_budget_usd), 0);
 
   return (
     <div className="fade-in">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div className="relative bg-white p-6 rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <BorderBeam size={250} duration={12} delay={0} />
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
             Flujo de Caja (Mes)
           </p>
@@ -54,7 +57,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div className="relative bg-white p-6 rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <BorderBeam size={250} duration={12} delay={3} colorFrom="#3b82f6" colorTo="#60a5fa" />
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
             Pagos Pendientes
           </p>
@@ -66,7 +70,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div className="relative bg-white p-6 rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <BorderBeam size={250} duration={12} delay={6} colorFrom="#10b981" colorTo="#34d399" />
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
             Proyectos Activos
           </p>
