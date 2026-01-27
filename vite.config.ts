@@ -1,3 +1,4 @@
+// Redeploy trigger: FTP credentials updated
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
