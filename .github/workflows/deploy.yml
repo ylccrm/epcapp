@@ -35,29 +35,11 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./
-          server-dir: /
+          local-dir: ./dist/
+          server-dir: /public_html/crmylc/
           dangerous-clean-slate: false
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/src/**
-            **/.agent/**
-            **/.bolt/**
-            **/public/**
-            tsconfig*.json
-            vite.config.ts
-            tailwind.config.js
-            postcss.config.js
-            eslint.config.js
-            *.ps1
-            *.md
-            *.zip
-            .env*
-            !.env.production
 
       - name: ✅ Deployment complete
         run: |
           echo "🎉 Deployment successful!"
-          echo "🌐 Visit: https://epc.ylevigroup.com"
+          echo "🌐 Visit: https://crmylc.ylevigroup.com"

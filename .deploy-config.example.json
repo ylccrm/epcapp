@@ -2,5 +2,5 @@
     "ftp_host": "ftp.ylevigroup.com",
     "ftp_user": "tu-usuario@ylevigroup.com",
     "ftp_pass": "tu-contraseña-aqui",
-    "ftp_remote_path": "/public_html/epc"
+    "ftp_remote_path": "/public_html/crmylc"
 }
