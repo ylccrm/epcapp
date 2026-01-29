@@ -52,9 +52,23 @@ function App() {
     }
   };
 
+
   return (
     <CurrencyProvider>
       <ToastProvider>
+        {/* Banner de Éxito - Test de Despliegue Automático */}
+        <div style={{
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          padding: '16px',
+          textAlign: 'center',
+          fontWeight: 'bold',
+          fontSize: '20px',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+        }}>
+          🎉 ¡LO LOGRAMOS! - Despliegue Automático Funcionando 🚀
+        </div>
+        
         <Layout
           currentView={currentView}
           onNavigate={handleNavigate}
