@@ -1,15 +1,14 @@
-name: Deploy to A2 Hosting
+name: Deploy to A2 Hosting via SSH
 
 on:
   push:
-    branches:
-      - main # Se ejecuta cuando haces push a la rama main
-  workflow_dispatch: # Permite ejecutar manualmente desde GitHub
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v3
@@ -17,11 +16,11 @@ jobs:
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "18"
-          cache: "npm"
+          node-version: '18'
+          cache: 'npm'
 
       - name: 📚 Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: 🏗️ Build application
         run: npm run build
@@ -29,16 +28,24 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
-      - name: 📤 Deploy to A2 Hosting via FTP
-        uses: sebastianpopp/ftp-action@releases/v2
+      - name: 📤 Deploy to Server via SCP
+        uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.FTP_SERVER }}
-          user: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          localDir: "dist"
-          remoteDir: "/epc.ylevigroup.com"
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: "dist/*"
+          target: "~/epc.ylevigroup.com/"
+          strip_components: 1
+          rm: true
 
       - name: ✅ Deployment complete
         run: |
           echo "🎉 Deployment successful!"
           echo "🌐 Visit: https://epc.ylevigroup.com"
+          echo ""
+          echo "📝 Deployed files:"
+          echo "  - index.html"
+          echo "  - assets/"
+          echo "  - All static files"
