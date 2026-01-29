@@ -29,16 +29,14 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
-      - name: 📤 Deploy to A2 Hosting via SFTP
-        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+      - name: 📤 Deploy to A2 Hosting via FTP
+        uses: sebastianpopp/ftp-action@releases/v2
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
+          host: ${{ secrets.FTP_SERVER }}
+          user: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          port: 22
-          local_path: './dist/*'
-          remote_path: '/epc.ylevigroup.com'
-          sftp_only: true
+          localDir: "dist"
+          remoteDir: "/epc.ylevigroup.com"
 
       - name: ✅ Deployment complete
         run: |
