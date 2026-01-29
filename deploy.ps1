@@ -13,9 +13,9 @@ Write-Host ""
 
 # Configuración - EDITA ESTOS VALORES
 $FTP_HOST = "ftp.ylevigroup.com"  # Tu servidor FTP
-$FTP_USER = "tu-usuario@ylevigroup.com"  # Tu usuario FTP
-$FTP_PASS = "tu-contraseña"  # Tu contraseña FTP
-$FTP_REMOTE_PATH = "/public_html/crmylc"  # Ruta remota en el servidor
+$FTP_USER = "epc_user@epc.ylevigroup.com"  # Tu usuario FTP
+$FTP_PASS = "Israel2025@"  # Tu contraseña FTP
+$FTP_REMOTE_PATH = "/home/ylevigro/epc.ylevigroup.com/epc_user"  # Ruta remota en el servidor
 
 # Verificar si existe el archivo de configuración
 $configFile = ".deploy-config.json"
@@ -143,7 +143,7 @@ Write-Host "  ✅ Despliegue Completado" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "🌐 Tu aplicación está disponible en:" -ForegroundColor Cyan
-Write-Host "   https://crmylc.ylevigroup.com" -ForegroundColor White
+Write-Host "   https://epc.ylevigroup.com" -ForegroundColor White
 Write-Host ""
 Write-Host "📝 Mensaje: $Message" -ForegroundColor Gray
 Write-Host ""
